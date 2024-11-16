@@ -1,4 +1,7 @@
+import 'package:app/features/authentication/screens/signup/signup.dart';
+import 'package:app/navigation_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 
 import '../../../../../utils/constants/sizes.dart';
@@ -57,13 +60,15 @@ class TLoginForm extends StatelessWidget {
                 const SizedBox(
                     height: TSizes.spaceBtwSections),
 
-                SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () {}, child: const Text('Войти'))),
+                SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => Get.to(() => const NavigationMenu()), child: const Text('Войти'))),
 
                 const SizedBox(
                     height: TSizes.spaceBtwItems),
 
-                SizedBox(width: double.infinity, child: OutlinedButton(onPressed: () {}, child: const Text('Регистрация'))),
-
+                SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(onPressed: () => Get.to(() => const SignupScreen()), child: const Text('Регистрация'))
+                ),
               ],
             )
         )
