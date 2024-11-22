@@ -1,3 +1,4 @@
+import 'package:app/bindings/general_bindings.dart';
 import 'package:app/features/authentication/screens/login/login.dart';
 import 'package:app/utils/theme/theme.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ class App extends StatelessWidget {
       themeMode: ThemeMode.system,
       theme: TAppTheme.theme,
       home: const LoginScreen(),
+      initialBinding: GeneralBindings(),
     );
   }
 }

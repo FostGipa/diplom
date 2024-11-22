@@ -1,13 +1,22 @@
 class TValidator {
-  static String? validateEmail(String value) {
-    if (value.isEmpty) {
-      return 'Email is required.';
+
+  static String? validateEmptyText(String? fieldName, String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Поле $fieldName не должно быть пустым';
+    }
+
+    return null;
+  }
+
+  static String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Поле Почта не должно быть пустым';
     }
 
     final emailRegExp = RegExp(r'^[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}$');
 
     if  (!emailRegExp.hasMatch(value)) {
-      return 'Invalid email address.';
+      return 'Некорректная почта';
     }
 
     return null;
@@ -15,7 +24,7 @@ class TValidator {
 
   static String? validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Password is required.';
+      return 'Поле Пароль не должно быть пустым';
     }
 
     if (value.length < 6) {
@@ -28,9 +37,10 @@ class TValidator {
 
     return null;
   }
+
   static String? validatePhoneNumber(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Требуется номер телефона.';
+      return 'Поле Номер телефона не должно быть пустым';
     }
     
     final phoneRegExp = RegExp(r'^\d{10}$');

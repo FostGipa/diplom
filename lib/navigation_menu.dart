@@ -1,4 +1,5 @@
 import 'package:app/features/volunteer/home/screens/home.dart';
+import 'package:app/features/volunteer/tasks/task_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg_icons/flutter_svg_icons.dart';
 import 'package:get/get.dart';
@@ -34,6 +35,6 @@ class NavigationMenu extends StatelessWidget {
 class NavigationController extends GetxController {
   final Rx<int> selectedIndex = 0.obs;
 
-  final screens = [const HomeScreen(), Container(color: Colors.orange), Container(color: Colors.blue)];
+  final screens = [const HomeScreen(), TasksScreen(), Container(color: Colors.blue)];
 
 }
