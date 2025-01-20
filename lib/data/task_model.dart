@@ -8,11 +8,14 @@ class TaskModel {
   String taskComment;
   List<String> taskCategories;
   String taskClientId; // Идентификатор клиента
-  List<String> taskVolunteerIds; // Список идентификаторов волонтеров
+  List<String> taskVolunteerIds;
+  int taskVolunteersCount;
   String taskStartDate;
+  String taskStartTime;
   String taskEndDate;
   String taskAddress;
   String taskCoordinates;
+  String taskStatus;
   ClientModel taskClient; // Объект клиента
   List<VolunteerModel> taskVolunteers; // Список волонтеров
 
@@ -24,10 +27,13 @@ class TaskModel {
     required this.taskCategories,
     required this.taskClientId,
     required this.taskVolunteerIds,
+    required this.taskVolunteersCount,
     required this.taskStartDate,
+    required this.taskStartTime,
     required this.taskEndDate,
     required this.taskAddress,
     required this.taskCoordinates,
+    required this.taskStatus,
     required this.taskClient,
     required this.taskVolunteers,
   });
@@ -39,14 +45,17 @@ class TaskModel {
       taskDescription: json['taskDescription'] as String? ?? '',
       taskComment: json['taskComment'] as String? ?? '',
       taskCategories: List<String>.from(json['taskCategories'] as List? ?? []),
-      taskClientId: json['taskClientId'] as String? ?? '', // Убедитесь, что это строка
-      taskVolunteerIds: List<String>.from(json['taskVolunteerIds'] as List? ?? []), // Убедитесь, что это список строк
+      taskClientId: json['taskClientId'] as String? ?? '',
+      taskVolunteerIds: List<String>.from(json['taskVolunteerIds'] as List? ?? []),
+      taskVolunteersCount: json['taskVolunteersCount'] as int,
       taskStartDate: json['taskStartDate'] as String? ?? '',
+      taskStartTime: json['taskStartTime'] as String,
       taskEndDate: json['taskEndDate'] as String? ?? '',
       taskAddress: json['taskAddress'] as String? ?? '',
       taskCoordinates: json['taskCoordinates'] as String? ?? '',
-      taskClient: ClientModel.empty(), // Инициализация пустым клиентом
-      taskVolunteers: [], // Инициализация пустым списком волонтеров
+      taskStatus: json['taskStatus'] as String,
+      taskClient: ClientModel.empty(),
+      taskVolunteers: [],
     );
   }
 
@@ -58,11 +67,14 @@ class TaskModel {
       'taskComment': taskComment,
       'taskCategories': taskCategories,
       'taskClientId': taskClientId, // Убедитесь, что это строка
-      'taskVolunteerIds': taskVolunteerIds, // Убедитесь, что это список строк
+      'taskVolunteerIds': taskVolunteerIds,
+      'taskVolunteersCount': taskVolunteersCount,
       'taskStartDate': taskStartDate,
+      'taskStartTime': taskStartTime,
       'taskEndDate': taskEndDate,
       'taskAddress': taskAddress,
       'taskCoordinates': taskCoordinates,
+      'taskStatus': taskStatus
     };
   }
 
@@ -74,10 +86,13 @@ class TaskModel {
     taskCategories: [],
     taskClientId: '',
     taskVolunteerIds: [],
+    taskVolunteersCount: 0,
     taskStartDate: '',
+    taskStartTime: '',
     taskEndDate: '',
     taskAddress: '',
     taskCoordinates: '',
+    taskStatus: '',
     taskClient: ClientModel.empty(),
     taskVolunteers: [],
   );

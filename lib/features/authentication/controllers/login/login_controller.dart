@@ -1,8 +1,10 @@
+import 'package:app/client_navigation_menu.dart';
 import 'package:app/features/authentication/authentication_repository.dart';
-import 'package:app/navigation_menu.dart';
+import 'package:app/volunteer_navigation_menu.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../../../data/firebase_service.dart';
 import '../../../../utils/loaders/loaders.dart';
 import '../../../../utils/network/network_manager.dart';
 import '../../../../utils/popups/full_screen_loader.dart';
@@ -14,6 +16,8 @@ class LoginController extends GetxController {
   final email = TextEditingController();
   final password = TextEditingController();
   GlobalKey<FormState> loginFormKey = GlobalKey<FormState>();
+
+  final FirebaseService _firebaseService = FirebaseService();
 
   Future<void> login() async {
     try {
@@ -40,14 +44,27 @@ class LoginController extends GetxController {
         localStorage.remove('REMEMBER_ME_PASSWORD');
       }
 
-      final userCredentials = await AuthenticationRepository.instance.loginWithEmailAndPassword(email.text.trim(), password.text.trim());
+      final userCredential = await AuthenticationRepository.instance.loginWithEmailAndPassword(email.text.trim(), password.text.trim());
+
+      localStorage.write('UID', userCredential.user!.uid);
 
       TFullScreenLoader.stopLoading();
 
-      TLoaders.successSnackBar(title: 'Успешно', message: 'Вход выполнен успешно');
+      TLoaders.successSnackBar(title: 'Успешно', message: 'Успешный вход в аккаунт');
 
-      // Перенаправляем на главный экран после успешной авторизации
-      Get.offAll(const NavigationMenu());
+      try {
+        // Await the future to get the role
+        String role = await _firebaseService.getUserById(userCredential.user!.uid);
+        print(role.toString());
+        if (role == 'Волонтер') {
+          Get.offAll(const VolunteerNavigationMenu());
+        } else {
+          Get.offAll(const ClientNavigationMenu());
+        }
+      } catch (e) {
+        print(e.toString());
+      }
+
     } catch (e) {
       TFullScreenLoader.stopLoading();
       TLoaders.errorSnackBar(title: 'Ошибка!', message: e.toString());

@@ -1,16 +1,20 @@
+import 'package:app/client_navigation_menu.dart';
 import 'package:app/data/user/client_model.dart';
 import 'package:app/data/user/user_repository.dart';
 import 'package:app/data/user/volunteer_model.dart';
 import 'package:app/features/authentication/authentication_repository.dart';
-import 'package:app/features/volunteer/home/screens/home.dart';
+import 'package:app/volunteer_navigation_menu.dart';
 import 'package:app/utils/loaders/loaders.dart';
 import 'package:app/utils/network/network_manager.dart';
 import 'package:app/utils/popups/full_screen_loader.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 
 class SignupController extends GetxController {
   static SignupController get instance => Get.find();
+
+  final localStorage = GetStorage();
 
   final hidePassword = true.obs;
   final privacyPolicy = true.obs;
@@ -66,6 +70,7 @@ class SignupController extends GetxController {
           phoneNumber: phone.text.trim()
         );
         await userRepository.saveClientRecord(newUser);
+        await userRepository.saveUserRecord(userCredential.user!.uid, 'Клиент');
       } else {
         final newUser = VolunteerModel(
           id: userCredential.user!.uid,
@@ -78,13 +83,21 @@ class SignupController extends GetxController {
           dobroId: dobroID.text.trim(),
         );
         await userRepository.saveVolunteerRecord(newUser);
+        await userRepository.saveUserRecord(userCredential.user!.uid, 'Волонтер');
       }
+
+      localStorage.write('UID', userCredential.user!.uid);
 
       TFullScreenLoader.stopLoading();
 
       TLoaders.successSnackBar(title: 'Успешно', message: 'Ваш аккаунт успешно зарегестрирован');
 
-      Get.to(() => const HomeScreen());
+      if (userRole.value == 2) {
+        Get.offAll(const VolunteerNavigationMenu());
+      } else {
+        Get.offAll(const ClientNavigationMenu());
+      }
+
     } catch (e) {
       TFullScreenLoader.stopLoading();
       TLoaders.errorSnackBar(title: 'Ошибка!', message: e.toString());

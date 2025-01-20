@@ -1,4 +1,5 @@
 import 'package:app/utils/theme/custom_themes/appbar_theme.dart';
+import 'package:app/utils/theme/custom_themes/bottom_sheet_theme.dart';
 import 'package:app/utils/theme/custom_themes/checkbox_theme.dart';
 import 'package:app/utils/theme/custom_themes/chip_theme.dart';
 import 'package:app/utils/theme/custom_themes/custom_theme.dart';
@@ -28,5 +29,6 @@ class TAppTheme {
     chipTheme: TChipTheme.chipTheme,
     outlinedButtonTheme: TOutlinedButtonTheme.outlinedButtonTheme,
     textButtonTheme: TTextButtonTheme.textButtonTheme,
+    bottomSheetTheme: TBottomSheetTheme.bottomSheetThemeData
   );
 }

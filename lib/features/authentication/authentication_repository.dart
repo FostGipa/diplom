@@ -1,10 +1,12 @@
 import 'package:app/features/authentication/screens/login/login.dart';
-import 'package:app/features/volunteer/home/screens/home.dart';
+import 'package:app/volunteer_navigation_menu.dart';
 import 'package:app/utils/exceptions/firebase_auth_exceptions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../client_navigation_menu.dart';
+import '../../data/firebase_service.dart';
 import '../../utils/popups/full_screen_loader.dart';
 
 class AuthenticationRepository extends GetxController {
@@ -12,6 +14,7 @@ class AuthenticationRepository extends GetxController {
 
   final _auth = FirebaseAuth.instance;
   final localStorage = GetStorage();
+  final FirebaseService _firebaseService = FirebaseService();
 
   @override
   void onReady() {
@@ -26,12 +29,18 @@ class AuthenticationRepository extends GetxController {
     if (rememberMeEmail != null && rememberMePassword != null) {
       TFullScreenLoader.openLoadingDialog('Авторизация...', 'assets/images/success.json');
       try {
-        await _auth.signInWithEmailAndPassword(
+        final userCredential = await _auth.signInWithEmailAndPassword(
           email: rememberMeEmail,
           password: rememberMePassword,
         );
+        localStorage.write('UID', userCredential.user!.uid);
         TFullScreenLoader.stopLoading();
-        Get.offAll(const HomeScreen());
+        String role = _firebaseService.getUserById(userCredential.user!.uid).toString();
+        if (role == 'Волонтер') {
+          Get.offAll(const VolunteerNavigationMenu());
+        } else {
+          Get.offAll(const ClientNavigationMenu());
+        }
       } catch (e) {
         TFullScreenLoader.stopLoading();
         localStorage.remove('REMEMBER_ME_EMAIL');
