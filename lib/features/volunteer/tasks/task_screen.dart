@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:app/data/task_model.dart';
-import '../../../data/firebase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,31 +27,13 @@ class TasksScreen extends StatefulWidget {
 }
 
 class _TasksScreenState extends State<TasksScreen> {
-  final FirebaseService _firebaseService = FirebaseService();
   List<TaskModel> _tasks = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadTasks();
-  }
 
-  Future<void> _loadTasks() async {
-    try {
-      final tasks = await _firebaseService.getAllTasks();
-      print('Loaded tasks: $tasks'); // Добавьте эту строку для отладки
-      setState(() {
-        _tasks = tasks;
-        _isLoading = false;
-      });
-    } catch (e, stackTrace) {
-      print('Error loading tasks: $e');
-      print('Stack trace: $stackTrace');
-      setState(() {
-        _isLoading = false;
-      });
-    }
   }
 
   @override
@@ -70,7 +51,7 @@ class _TasksScreenState extends State<TasksScreen> {
           return ListTile(
             title: Text(task.taskName),
             subtitle: Text(task.taskDescription),
-            trailing: Text(task.taskClient.firstName), // Добавьте проверку на null
+            // trailing: Text(task.taskClient.firstName), // Добавьте проверку на null
           );
         },
       ),

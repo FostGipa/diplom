@@ -1,5 +1,6 @@
 import 'package:app/bindings/general_bindings.dart';
-import 'package:app/features/authentication/screens/login/login.dart';
+import 'package:app/client_navigation_menu.dart';
+import 'package:app/features/authentication/screens/login.dart';
 import 'package:app/utils/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -13,7 +14,7 @@ class App extends StatelessWidget {
     return GetMaterialApp(
       themeMode: ThemeMode.system,
       theme: TAppTheme.theme,
-      home: const LoginScreen(),
+      home: ClientNavigationMenu(),
       localizationsDelegates: [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

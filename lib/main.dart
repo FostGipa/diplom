@@ -1,12 +1,9 @@
 import 'package:app/app.dart';
-import 'package:app/firebase_options.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:yandex_maps_mapkit/init.dart' as init;
 
-import 'features/authentication/authentication_repository.dart';
 
 Future<void> main() async {
 
@@ -16,9 +13,11 @@ Future<void> main() async {
 
   await GetStorage.init();
 
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform).then(
-      (FirebaseApp value) => Get.put(AuthenticationRepository()),
+  await init.initMapkit(
+      apiKey: '15f1c5e6-b50b-49f5-a491-57f675d736e7'
   );
+
+  FlutterNativeSplash.remove();
 
   runApp(const App());
 }

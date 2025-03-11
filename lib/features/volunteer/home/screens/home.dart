@@ -3,7 +3,6 @@ import 'package:app/utils/loaders/loaders.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../common/widgets/custom_shaper/containers/primary_header_container.dart';
-import '../../../../data/firebase_service.dart';
 import '../../../../data/task_model.dart';
 import '../../../../utils/constants/colors.dart';
 import '../../../../utils/constants/sizes.dart';
@@ -17,55 +16,12 @@ class VolunteerHomeScreen extends StatefulWidget {
 }
 
 class VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
-  final FirebaseService _firebaseService = FirebaseService();
   TaskModel? _task;
   List<TaskModel> _tasks = [];
 
   @override
   void initState() {
     super.initState();
-    _loadTask();
-    _loadAllTasks();
-  }
-
-  Future<void> _loadTask() async {
-    try {
-      final task = await _firebaseService.getTaskById('JrbUfBMHE77C02HOxbq1');
-      setState(() {
-        _task = task;
-      });
-    } catch (e) {
-      TLoaders.errorSnackBar(title: 'Ошибка', message: '$e');
-      setState(() {
-        _task = null;
-      });
-    }
-  }
-
-  Future<void> _loadAllTasks() async {
-    try {
-      final tasks = await _firebaseService.getAllTasks();
-      setState(() {
-        _tasks = tasks;
-      });
-    } catch (e) {
-      TLoaders.errorSnackBar(title: 'Ошибка', message: '$e');
-    }
-  }
-
-  Future<void> _acceptTask(TaskModel task) async {
-    try {
-      await _firebaseService.updateTaskStatus(task.id, 'Активна');
-      setState(() {
-        _task = task;
-        _tasks.remove(task);
-      });
-      TLoaders.successSnackBar(title: 'Успешно', message: 'Заявка принята');
-      // Обновляем активную заявку
-      _loadTask();
-    } catch (e) {
-      TLoaders.errorSnackBar(title: 'Ошибка', message: '$e');
-    }
   }
 
   @override
@@ -188,19 +144,18 @@ class VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
                                 children: [
                                   Icon(Iconsax.user, color: Colors.black),
                                   SizedBox(width: 8),
-                                  Text(
-                                    '${_task!.taskClient.firstName} ${_task!.taskClient.lastName}',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 18,
-                                    ),
-                                  ),
+                                  // Text(
+                                  //   '${_task!.taskClient.firstName} ${_task!.taskClient.lastName}',
+                                  //   style: TextStyle(
+                                  //     fontWeight: FontWeight.w400,
+                                  //     fontSize: 18,
+                                  //   ),
+                                  // ),
                                 ],
                               ),
                               SizedBox(height: 32),
                               // Добавляем свайп-кнопку внизу
                               SwipeButton(
-                                task: _task!,
                                 onAccept: () {},
                               ),
                               SizedBox(height: TSizes.spaceBtwItems)
@@ -271,213 +226,213 @@ class VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
                 ),
               ),
               SizedBox(height: TSizes.spaceBtwItems),
-              FutureBuilder<List<TaskModel>>(
-                future: _firebaseService.getAllTasks(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Ошибка: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(child: Text('Задачи не найдены'));
-                  } else {
-                    final tasks = snapshot.data!;
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: tasks.length,
-                      itemBuilder: (context, index) {
-                        final task = tasks[index];
-                        // Пропускаем активную заявку
-                        if (_task != null && task.taskStatus == 'Активна') {
-                          return SizedBox.shrink(); // Пропускаем активную заявку
-                        }
-                        return GestureDetector(
-                          onTap: () {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                              ),
-                              builder: (BuildContext context) {
-                                return Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  child: SingleChildScrollView(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          task.taskName,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 25,
-                                          ),
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          task.taskDescription,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w400,
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                        SizedBox(height: 32),
-                                        Text(
-                                          'Информация',
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            fontSize: 25,
-                                          ),
-                                        ),
-                                        SizedBox(height: 16),
-                                        Row(
-                                          children: [
-                                            Icon(Iconsax.calendar_1, color: Colors.black),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              task.taskStartDate,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w400,
-                                                fontSize: 18,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 16),
-                                        Row(
-                                          children: [
-                                            Icon(Iconsax.map, color: Colors.black),
-                                            SizedBox(width: 8),
-                                            Expanded(
-                                              child: Text(
-                                                task.taskAddress,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.w400,
-                                                  fontSize: 18,
-                                                ),
-                                                softWrap: true,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 16),
-                                        Row(
-                                          children: [
-                                            Icon(Iconsax.user, color: Colors.black),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              '${task.taskClient.firstName} ${task.taskClient.lastName}',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.w400,
-                                                fontSize: 18,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(height: 32),
-                                        // Добавляем свайп-кнопку внизу
-                                        SwipeButton(
-                                          task: task,
-                                          onAccept: () => _acceptTask,
-                                        ),
-                                        SizedBox(height: TSizes.spaceBtwItems)
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          child: SizedBox(
-                            width: TDeviceUtils.getScreenWight(context),
-                            child: Stack(
-                              children: [
-                                TPrimaryHeaderContainer(
-                                  backgroundColor: Colors.white,
-                                  circularColor: TColors.green.withOpacity(0.2),
-                                  child: Padding(
-                                    padding: EdgeInsets.all(TSizes.lg),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Помощь по дому",
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w400,
-                                            color: TColors.green,
-                                          ),
-                                        ),
-                                        SizedBox(height: TSizes.sm),
-                                        Text(
-                                          task.taskName,
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black,
-                                          ),
-                                          softWrap: true,
-                                        ),
-                                        SizedBox(height: TSizes.spaceBtwInputFields),
-                                        Row(
-                                          children: [
-                                            Icon(Iconsax.calendar_1, color: Colors.black),
-                                            SizedBox(width: TSizes.sm),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  task.taskStartDate,
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w400,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  task.taskStartTime,
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w400,
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  right: TSizes.lg, // Отступ справа
-                                  bottom: TSizes.lg,  // Отступ сверху
-                                  child: Row(
-                                    children: [
-                                      Icon(Iconsax.user),
-                                      SizedBox(width: TSizes.xs),
-                                      Text(
-                                        task.taskVolunteersCount.toString(),
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w400,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  }
-                },
-              ),
+              // FutureBuilder<List<TaskModel>>(
+              //   future: _firebaseService.getAllTasks(),
+              //   builder: (context, snapshot) {
+              //     if (snapshot.connectionState == ConnectionState.waiting) {
+              //       return Center(child: CircularProgressIndicator());
+              //     } else if (snapshot.hasError) {
+              //       return Center(child: Text('Ошибка: ${snapshot.error}'));
+              //     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              //       return Center(child: Text('Задачи не найдены'));
+              //     } else {
+              //       final tasks = snapshot.data!;
+              //       return ListView.builder(
+              //         shrinkWrap: true,
+              //         physics: NeverScrollableScrollPhysics(),
+              //         itemCount: tasks.length,
+              //         itemBuilder: (context, index) {
+              //           final task = tasks[index];
+              //           // Пропускаем активную заявку
+              //           if (_task != null && task.taskStatus == 'Активна') {
+              //             return SizedBox.shrink(); // Пропускаем активную заявку
+              //           }
+              //           return GestureDetector(
+              //             onTap: () {
+              //               showModalBottomSheet(
+              //                 context: context,
+              //                 isScrollControlled: true,
+              //                 shape: RoundedRectangleBorder(
+              //                   borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              //                 ),
+              //                 builder: (BuildContext context) {
+              //                   return Container(
+              //                     padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              //                     child: SingleChildScrollView(
+              //                       child: Column(
+              //                         crossAxisAlignment: CrossAxisAlignment.start,
+              //                         children: [
+              //                           Text(
+              //                             task.taskName,
+              //                             style: TextStyle(
+              //                               fontWeight: FontWeight.w600,
+              //                               fontSize: 25,
+              //                             ),
+              //                           ),
+              //                           SizedBox(height: 16),
+              //                           Text(
+              //                             task.taskDescription,
+              //                             style: TextStyle(
+              //                               fontWeight: FontWeight.w400,
+              //                               fontSize: 18,
+              //                             ),
+              //                           ),
+              //                           SizedBox(height: 32),
+              //                           Text(
+              //                             'Информация',
+              //                             style: TextStyle(
+              //                               fontWeight: FontWeight.w600,
+              //                               fontSize: 25,
+              //                             ),
+              //                           ),
+              //                           SizedBox(height: 16),
+              //                           Row(
+              //                             children: [
+              //                               Icon(Iconsax.calendar_1, color: Colors.black),
+              //                               SizedBox(width: 8),
+              //                               Text(
+              //                                 task.taskStartDate,
+              //                                 style: TextStyle(
+              //                                   fontWeight: FontWeight.w400,
+              //                                   fontSize: 18,
+              //                                 ),
+              //                               ),
+              //                             ],
+              //                           ),
+              //                           SizedBox(height: 16),
+              //                           Row(
+              //                             children: [
+              //                               Icon(Iconsax.map, color: Colors.black),
+              //                               SizedBox(width: 8),
+              //                               Expanded(
+              //                                 child: Text(
+              //                                   task.taskAddress,
+              //                                   style: TextStyle(
+              //                                     fontWeight: FontWeight.w400,
+              //                                     fontSize: 18,
+              //                                   ),
+              //                                   softWrap: true,
+              //                                 ),
+              //                               ),
+              //                             ],
+              //                           ),
+              //                           SizedBox(height: 16),
+              //                           Row(
+              //                             children: [
+              //                               Icon(Iconsax.user, color: Colors.black),
+              //                               SizedBox(width: 8),
+              //                               Text(
+              //                                 '${task.taskClient.firstName} ${task.taskClient.lastName}',
+              //                                 style: TextStyle(
+              //                                   fontWeight: FontWeight.w400,
+              //                                   fontSize: 18,
+              //                                 ),
+              //                               ),
+              //                             ],
+              //                           ),
+              //                           SizedBox(height: 32),
+              //                           // Добавляем свайп-кнопку внизу
+              //                           SwipeButton(
+              //                             task: task,
+              //                             onAccept: () => _acceptTask,
+              //                           ),
+              //                           SizedBox(height: TSizes.spaceBtwItems)
+              //                         ],
+              //                       ),
+              //                     ),
+              //                   );
+              //                 },
+              //               );
+              //             },
+              //             child: SizedBox(
+              //               width: TDeviceUtils.getScreenWight(context),
+              //               child: Stack(
+              //                 children: [
+              //                   TPrimaryHeaderContainer(
+              //                     backgroundColor: Colors.white,
+              //                     circularColor: TColors.green.withOpacity(0.2),
+              //                     child: Padding(
+              //                       padding: EdgeInsets.all(TSizes.lg),
+              //                       child: Column(
+              //                         crossAxisAlignment: CrossAxisAlignment.start,
+              //                         children: [
+              //                           Text(
+              //                             "Помощь по дому",
+              //                             style: TextStyle(
+              //                               fontSize: 18,
+              //                               fontWeight: FontWeight.w400,
+              //                               color: TColors.green,
+              //                             ),
+              //                           ),
+              //                           SizedBox(height: TSizes.sm),
+              //                           Text(
+              //                             task.taskName,
+              //                             style: TextStyle(
+              //                               fontSize: 20,
+              //                               fontWeight: FontWeight.w600,
+              //                               color: Colors.black,
+              //                             ),
+              //                             softWrap: true,
+              //                           ),
+              //                           SizedBox(height: TSizes.spaceBtwInputFields),
+              //                           Row(
+              //                             children: [
+              //                               Icon(Iconsax.calendar_1, color: Colors.black),
+              //                               SizedBox(width: TSizes.sm),
+              //                               Column(
+              //                                 crossAxisAlignment: CrossAxisAlignment.start,
+              //                                 children: [
+              //                                   Text(
+              //                                     task.taskStartDate,
+              //                                     style: TextStyle(
+              //                                       fontSize: 16,
+              //                                       fontWeight: FontWeight.w400,
+              //                                       color: Colors.black,
+              //                                     ),
+              //                                   ),
+              //                                   Text(
+              //                                     task.taskStartTime,
+              //                                     style: TextStyle(
+              //                                       fontSize: 16,
+              //                                       fontWeight: FontWeight.w400,
+              //                                       color: Colors.black,
+              //                                     ),
+              //                                   ),
+              //                                 ],
+              //                               ),
+              //                             ],
+              //                           ),
+              //                         ],
+              //                       ),
+              //                     ),
+              //                   ),
+              //                   Positioned(
+              //                     right: TSizes.lg, // Отступ справа
+              //                     bottom: TSizes.lg,  // Отступ сверху
+              //                     child: Row(
+              //                       children: [
+              //                         Icon(Iconsax.user),
+              //                         SizedBox(width: TSizes.xs),
+              //                         Text(
+              //                           task.taskVolunteersCount.toString(),
+              //                           style: TextStyle(
+              //                             fontSize: 18,
+              //                             fontWeight: FontWeight.w400,
+              //                             color: Colors.black,
+              //                           ),
+              //                         ),
+              //                       ],
+              //                     ),
+              //                   ),
+              //                 ],
+              //               ),
+              //             ),
+              //           );
+              //         },
+              //       );
+              //     }
+              //   },
+              // ),
             ],
           ),
         ),
@@ -487,12 +442,10 @@ class VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
 }
 
 class SwipeButton extends StatefulWidget {
-  final TaskModel task;
   final VoidCallback onAccept;
 
   const SwipeButton({
     super.key,
-    required this.task,
     required this.onAccept,
   });
 

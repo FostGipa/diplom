@@ -1,16 +1,20 @@
-import 'package:intl/intl.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
-class TFormatter {
-  static String formatDate(DateTime? date) {
-    date ??= DateTime.now();
-    return DateFormat('dd-MM-yyyy').format(date);
-  }
+class TFormatters {
 
-  static String formatPhoneNumber(String phoneNumber) {
-    // (999)999-99-99
-    if (phoneNumber.length == 10) {
-      return '(${phoneNumber.substring(0, 3)}) ${phoneNumber.substring(3, 6)} ${phoneNumber.substring(6)}';
-    }
-    return phoneNumber;
-  }
+  final MaskTextInputFormatter passportFormatter = MaskTextInputFormatter(
+    mask: '#### ######',
+    filter: {"#": RegExp(r'[0-9A-Z]')},
+  );
+
+  // Маска на DobroID
+  final MaskTextInputFormatter dobroIdFormatter = MaskTextInputFormatter(
+    mask: '######',
+    filter: {"#": RegExp(r'[0-9A-Z]')},
+  );
+
+  final MaskTextInputFormatter phoneMask = MaskTextInputFormatter(
+    mask: '+7 (###) ###-##-##',
+    filter: {"#": RegExp(r'\d')},
+  );
 }

@@ -1,14 +1,14 @@
-import 'package:app/data/user/client_model.dart';
-import 'package:app/data/user/volunteer_model.dart';
+import 'package:app/data/models/client_model.dart';
+import 'package:app/data/models/volunteer_model.dart';
 
 class TaskModel {
-  String id;
+  int id;
   String taskName;
   String taskDescription;
   String taskComment;
   List<String> taskCategories;
-  String taskClientId; // Идентификатор клиента
-  List<String> taskVolunteerIds;
+  Client client;
+  List<Volunteer> volunteers;
   int taskVolunteersCount;
   String taskStartDate;
   String taskStartTime;
@@ -16,17 +16,15 @@ class TaskModel {
   String taskAddress;
   String taskCoordinates;
   String taskStatus;
-  ClientModel taskClient; // Объект клиента
-  List<VolunteerModel> taskVolunteers; // Список волонтеров
 
   TaskModel({
-    this.id = '', // По умолчанию пустая строка
+    required this.id,
     required this.taskName,
     required this.taskDescription,
     required this.taskComment,
     required this.taskCategories,
-    required this.taskClientId,
-    required this.taskVolunteerIds,
+    required this.client,
+    required this.volunteers,
     required this.taskVolunteersCount,
     required this.taskStartDate,
     required this.taskStartTime,
@@ -34,66 +32,75 @@ class TaskModel {
     required this.taskAddress,
     required this.taskCoordinates,
     required this.taskStatus,
-    required this.taskClient,
-    required this.taskVolunteers,
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
-      id: json['id'] as String? ?? '',
-      taskName: json['taskName'] as String? ?? '',
-      taskDescription: json['taskDescription'] as String? ?? '',
-      taskComment: json['taskComment'] as String? ?? '',
-      taskCategories: List<String>.from(json['taskCategories'] as List? ?? []),
-      taskClientId: json['taskClientId'] as String? ?? '',
-      taskVolunteerIds: List<String>.from(json['taskVolunteerIds'] as List? ?? []),
-      taskVolunteersCount: json['taskVolunteersCount'] as int,
-      taskStartDate: json['taskStartDate'] as String? ?? '',
-      taskStartTime: json['taskStartTime'] as String,
-      taskEndDate: json['taskEndDate'] as String? ?? '',
-      taskAddress: json['taskAddress'] as String? ?? '',
-      taskCoordinates: json['taskCoordinates'] as String? ?? '',
-      taskStatus: json['taskStatus'] as String,
-      taskClient: ClientModel.empty(),
-      taskVolunteers: [],
+      id: json['id_task'] as int? ?? 0,
+      taskName: json['task_name'] as String? ?? '',
+      taskDescription: json['task_description'] as String? ?? '',
+      taskComment: json['task_comment'] as String? ?? '',
+      taskCategories: List<String>.from(json['task_categories'] ?? []),
+      client: Client.fromJson({
+        'id_client': json['id_client'],
+        'name': json['client_name'],
+        'last_name': json['client_last_name'],
+        'middle_name': json['client_middle_name'],
+        'phone_number': json['client_phone']
+      }),
+      volunteers: (json['volunteers'] as List<dynamic>?)
+          ?.map((v) => Volunteer.fromJson(v))
+          .toList() ?? [],
+      taskVolunteersCount: json['task_volunteers_count'] as int? ?? 0,
+      taskStartDate: json['task_start_date'] as String? ?? '',
+      taskStartTime: json['task_start_time'] as String? ?? '',
+      taskEndDate: json['task_end_date'] as String? ?? '',
+      taskAddress: json['task_address'] as String? ?? '',
+      taskCoordinates: json['task_coordinates'] as String? ?? '',
+      taskStatus: json['task_status'] as String? ?? '',
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'taskName': taskName,
-      'taskDescription': taskDescription,
-      'taskComment': taskComment,
-      'taskCategories': taskCategories,
-      'taskClientId': taskClientId, // Убедитесь, что это строка
-      'taskVolunteerIds': taskVolunteerIds,
-      'taskVolunteersCount': taskVolunteersCount,
-      'taskStartDate': taskStartDate,
-      'taskStartTime': taskStartTime,
-      'taskEndDate': taskEndDate,
-      'taskAddress': taskAddress,
-      'taskCoordinates': taskCoordinates,
-      'taskStatus': taskStatus
-    };
+
+  @override
+  String toString() {
+    return '''
+      TaskModel(
+        id: $id,
+        taskName: $taskName,
+        taskDescription: $taskDescription,
+        taskComment: $taskComment,
+        taskCategories: $taskCategories,
+        client: $client,
+        volunteers: $volunteers,
+        taskVolunteersCount: $taskVolunteersCount,
+        taskStartDate: $taskStartDate,
+        taskStartTime: $taskStartTime,
+        taskEndDate: $taskEndDate,
+        taskAddress: $taskAddress,
+        taskCoordinates: $taskCoordinates,
+        taskStatus: $taskStatus
+      )
+      ''';
   }
 
-  static TaskModel empty() => TaskModel(
-    id: '',
-    taskName: '',
-    taskDescription: '',
-    taskComment: '',
-    taskCategories: [],
-    taskClientId: '',
-    taskVolunteerIds: [],
-    taskVolunteersCount: 0,
-    taskStartDate: '',
-    taskStartTime: '',
-    taskEndDate: '',
-    taskAddress: '',
-    taskCoordinates: '',
-    taskStatus: '',
-    taskClient: ClientModel.empty(),
-    taskVolunteers: [],
-  );
+
+  // Map<String, dynamic> toJson() {
+  //   return {
+  //     'id_task': id,
+  //     'task_name': taskName,
+  //     'task_description': taskDescription,
+  //     'task_comment': taskComment,
+  //     'task_categories': taskCategories,
+  //     'id_client': taskClientId,
+  //     'id_volunteers': taskVolunteerIds,
+  //     'task_volunteers_count': taskVolunteersCount,
+  //     'task_start_date': taskStartDate,
+  //     'task_start_time': taskStartTime,
+  //     'task_end_date': taskEndDate,
+  //     'task_address': taskAddress,
+  //     'task_coordinates': taskCoordinates,
+  //     'task_status': taskStatus
+  //   };
+  // }
 }
