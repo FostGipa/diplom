@@ -1,34 +1,31 @@
 import 'package:app/common/widgets/custom_swipe_button.dart';
 import 'package:app/data/models/task_model.dart';
-import 'package:app/features/client/home/controllers/task_detail_controller.dart';
 import 'package:app/utils/constants/colors.dart';
 import 'package:app/utils/constants/sizes.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:yandex_maps_mapkit/mapkit_factory.dart';
 import 'package:yandex_maps_mapkit/mapkit.dart' as yandex_mapkit;
 import 'package:yandex_maps_mapkit/src/bindings/image/image_provider.dart' as yandex_image_provider;
 import 'package:yandex_maps_mapkit/yandex_map.dart';
 import '../../../../data/models/volunteer_model.dart';
+import '../controllers/volunteer_task_detail_controller.dart';
 
-class TaskDetailScreen extends StatefulWidget {
+class VolunteerTaskDetail extends StatefulWidget {
   final TaskModel task;
 
-  const TaskDetailScreen({super.key, required this.task});
+  const VolunteerTaskDetail({super.key, required this.task});
 
   @override
-  State<TaskDetailScreen> createState() => _TaskDetailScreenState();
+  State<VolunteerTaskDetail> createState() => VolunteerTaskDetailState();
 }
 
-class _TaskDetailScreenState extends State<TaskDetailScreen> {
-  final TaskDetailController _controller = Get.put(TaskDetailController());
+class VolunteerTaskDetailState extends State<VolunteerTaskDetail> {
+
+  final VolunteerTaskDetailController _controller = Get.put(VolunteerTaskDetailController());
 
   late final AppLifecycleListener lifecycleListener;
   yandex_mapkit.MapWindow? _mapWindow;
@@ -173,19 +170,19 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                         child: Obx(() {
                           final task = _controller.taskData.value;
                           return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildCategoryChips(task!.taskCategories),
-                                SizedBox(height: TSizes.spaceBtwItems),
-                                Text(task.taskName, style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
-                                SizedBox(height: TSizes.spaceBtwItems),
-                                Text(task.taskDescription, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
-                                SizedBox(height: TSizes.spaceBtwItems),
-                                Text("Комментарий: ${task.taskComment}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
-                                SizedBox(height: TSizes.spaceBtwSections),
-                                Text('Информация', style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
-                                SizedBox(height: TSizes.spaceBtwItems),
-                                Container(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildCategoryChips(task!.taskCategories),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              Text(task.taskName, style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              Text(task.taskDescription, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              Text("Комментарий: ${task.taskComment}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
+                              SizedBox(height: TSizes.spaceBtwSections),
+                              Text('Информация', style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              Container(
                                   padding: EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
@@ -208,53 +205,26 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                                       _buildInfoRow(Iconsax.user, "${task.client?.lastName} ${task.client?.name}", _controller.formatDate(task.client!.dateOfBirth)),
                                     ],
                                   )
-                                ),
-                                SizedBox(height: TSizes.spaceBtwSections),
-                                Text('Волонтеры', style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
-                                SizedBox(height: TSizes.spaceBtwItems),
-                                _buildVolunteerList(task.volunteers)
-                              ],
+                              ),
+                              SizedBox(height: TSizes.spaceBtwSections),
+                              Text('Волонтеры', style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              _buildVolunteerList(task.volunteers)
+                            ],
                           );
                         }
                         )
                     ),
                     SizedBox(height: TSizes.spaceBtwSections),
                     SwipeButton(
-                        text: "Завершить заявку",
-                        onAccept: () {
-                          Get.dialog(AlertDialog(
-                            title: Text("Подтвердите завершение", textAlign: TextAlign.center,),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  "Для завершения заявки волонтер должен отсканировать QR код.",
-                                  style: TextStyle(fontSize: 16),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(height: 20),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: 200,
-                                    height: 200,
-                                    child: QrImageView(
-                                      data: 'fffff',
-                                      version: QrVersions.auto,
-                                      size: 200.0,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Get.back(),
-                                child: Text("Закрыть"),
-                              ),
-                            ],
-                          ));
+                      text: _controller.taskData.value?.taskStatus == 'В процессе' ? "Завершить заявку" : "Принять заявку",
+                      onAccept: () {
+                        if (_controller.taskData.value?.taskStatus == 'В процессе') {
+                          _endTask();
+                        } else {
+                          acceptRequest();
                         }
+                      },
                     ),
 
                     SizedBox(height: TSizes.spaceBtwSections),
@@ -410,29 +380,29 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
 
   Widget _buildInfoRow(IconData icon, String line1, String? line2) {
     return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(icon, size: 25),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(icon, size: 25),
+        SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                line1,
+                style: TextStyle(fontSize: 18),
+                softWrap: true,
+              ),
+              if (line2 != null && line2.isNotEmpty)
                 Text(
-                  line1,
+                  line2,
                   style: TextStyle(fontSize: 18),
                   softWrap: true,
                 ),
-                if (line2 != null && line2.isNotEmpty)
-                  Text(
-                    line2,
-                    style: TextStyle(fontSize: 18),
-                    softWrap: true,
-                  ),
-              ],
-            ),
+            ],
           ),
-        ],
+        ),
+      ],
     );
   }
 
@@ -467,6 +437,44 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
     }
   }
 
+  void _endTask() {
+    Get.dialog(AlertDialog(
+      title: Text(
+        "Подтвердите завершение",
+        textAlign: TextAlign.center,
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "Для завершения заявки волонтер должен отсканировать QR-код.",
+            style: TextStyle(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 20),
+          Align(
+            alignment: Alignment.center,
+            child: SizedBox(
+              width: 200,
+              height: 200,
+              child: QrImageView(
+                data: 'fffff', // Данные QR-кода
+                version: QrVersions.auto,
+                size: 200.0,
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Get.back(),
+          child: Text("Закрыть"),
+        ),
+      ],
+    ));
+  }
+
   void _startMapkit() {
     if (!_isMapkitActive) {
       _isMapkitActive = true;
@@ -479,5 +487,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       _isMapkitActive = false;
       mapkit.onStop();
     }
+  }
+
+  void acceptRequest() {
+
   }
 }

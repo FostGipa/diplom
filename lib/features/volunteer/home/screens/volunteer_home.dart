@@ -1,29 +1,28 @@
-import 'dart:async';
-import 'package:app/data/models/client_model.dart';
-import 'package:app/features/client/home/screens/task_create.dart';
-import 'package:app/features/client/home/screens/task_detail.dart';
-import 'package:app/features/common/screens/notifications.dart';
+import 'package:app/data/models/volunteer_model.dart';
+import 'package:app/features/volunteer/home/controllers/volunteer_home_controller.dart';
+import 'package:app/features/volunteer/home/screens/volunteer_task_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import '../../../../common/widgets/appbar/appbar.dart';
+import '../../../../common/widgets/appbar/custom_notification_icon_widget.dart';
 import '../../../../common/widgets/custom_shaper/containers/primary_header_container.dart';
 import '../../../../utils/constants/colors.dart';
 import '../../../../utils/constants/sizes.dart';
-import '../../../../common/widgets/appbar/appbar.dart';
-import '../../../../common/widgets/appbar/custom_notification_icon_widget.dart';
 import '../../../../utils/device/device_utility.dart';
-import '../controllers/client_home_controller.dart';
+import '../../../common/screens/notifications.dart';
 
-class ClientHomeScreen extends StatefulWidget {
-  const ClientHomeScreen({super.key});
+class VolunteerHomeScreen extends StatefulWidget {
+  const VolunteerHomeScreen({super.key});
 
   @override
-  State<ClientHomeScreen> createState() => ClientHomeScreenState();
+  State<VolunteerHomeScreen> createState() => VolunteerHomeScreenState();
 }
 
-class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingObserver{
-  final ClientHomeController _controller = Get.put(ClientHomeController());
+class VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
+
+  final VolunteerHomeController _controller = Get.put(VolunteerHomeController());
 
   @override
   void initState() {
@@ -55,14 +54,6 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
                 _activeTasks(context),
                 SizedBox(height: TSizes.spaceBtwSections),
                 _archiveTasks(context),
-                SizedBox(height: TSizes.spaceBtwItems),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Get.to(() => const ClientTaskCreateScreen()),
-                    child: const Text('Создать новую заявку'),
-                  ),
-                ),
               ],
             ),
           ),
@@ -82,12 +73,12 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
           ),
           const SizedBox(height: TSizes.xs),
           Obx(() {
-            if (_controller.clientData.value == null) {
+            if (_controller.volunteerData.value == null) {
               return const Text("Загрузка...");
             }
-            Client client = _controller.clientData.value!;
+            Volunteer volunteer = _controller.volunteerData.value!;
             return Text(
-              '${client.name} ${client.lastName}',
+              '${volunteer.name} ${volunteer.lastName}',
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: Colors.black),
             );
           }),
@@ -187,7 +178,7 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
                 children: [
                   GestureDetector(
                     onTap: () async {
-                      await Get.to(TaskDetailScreen(task: task));
+                      await Get.to(VolunteerTaskDetail(task: task));
                       _controller.loadData();
                     },
                     child: SizedBox(
@@ -305,3 +296,4 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
     );
   }
 }
+

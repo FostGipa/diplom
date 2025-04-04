@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 class SwipeButton extends StatefulWidget {
   final VoidCallback onAccept;
+  final String text;
 
   const SwipeButton({
     super.key,
     required this.onAccept,
+    required this.text
   });
 
   @override
@@ -60,8 +62,8 @@ class _SwipeButtonState extends State<SwipeButton> {
             // Зеленая кнопка (фон)
             Positioned.fill(
               child: Center(
-                child: const Text(
-                  'Принять заявку',
+                child: Text(
+                  widget.text,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,

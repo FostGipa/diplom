@@ -2,8 +2,7 @@ import 'package:app/common/widgets/appbar/appbar.dart';
 import 'package:app/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-import '../../../../data/task_model.dart';
-import '../../../../data/user/volunteer_model.dart';
+import '../../../../data/models/task_model.dart';
 import '../widgets/archive_list_item.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -14,7 +13,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  VolunteerModel? _volunteer;
   List<TaskModel> _completedTasks = [];
   bool _isLoading = true;
   String? _error;
@@ -39,8 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _error != null
-          ? Center(child: Text(_error!))
-          : _volunteer != null
           ? SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(TSizes.defaultSpace),
@@ -53,16 +49,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               SizedBox(height: TSizes.spaceBtwItems),
 
-              Text('${_volunteer!.firstName} ${_volunteer!.lastName}', style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 25,
-              )),
-
-              Text('ID: ${_volunteer!.dobroId}', style: TextStyle(
-                fontWeight: FontWeight.w400,
-                color: Colors.grey,
-                fontSize: 18
-                )),
+              // Text('${_volunteer!.firstName} ${_volunteer!.lastName}', style: TextStyle(
+              //   fontWeight: FontWeight.w600,
+              //   fontSize: 25,
+              // )),
+              //
+              // Text('ID: ${_volunteer!.dobroId}', style: TextStyle(
+              //   fontWeight: FontWeight.w400,
+              //   color: Colors.grey,
+              //   fontSize: 18
+              //   )),
 
               SizedBox(height: TSizes.spaceBtwItems),
 
@@ -89,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               SizedBox(height: TSizes.spaceBtwItems),
 
-              ..._completedTasks.map((task) => ArchiveListItem(taskName: task.taskName, taskDate: task.taskEndDate)),
+              ..._completedTasks.map((task) => ArchiveListItem(taskName: task.taskName, taskDate: task.taskEndDate!)),
 
               SizedBox(height: 10),
 

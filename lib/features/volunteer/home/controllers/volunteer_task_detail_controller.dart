@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:app/data/models/task_model.dart';
 import 'package:app/utils/loaders/loaders.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +13,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../../../data/models/user_model.dart';
 import '../../../../server/service.dart';
 
-class TaskDetailController extends GetxController {
+class VolunteerTaskDetailController extends GetxController {
   final ServerService serverService = ServerService();
   Rx<TaskModel?> taskData = Rx<TaskModel?>(null);
   var panelHeight = 0.3.obs;
@@ -22,9 +21,9 @@ class TaskDetailController extends GetxController {
   var isLoading = true.obs;
   WebSocketChannel? channel;
   RxString lastMessage = ''.obs;
-  final StreamController<String> _messageController = StreamController.broadcast(); // ✅ Позволяет несколько слушателей
+  final StreamController<String> _messageController = StreamController.broadcast();
 
-  Stream<String> get messageStream => _messageController.stream; // Поток сообщений
+  Stream<String> get messageStream => _messageController.stream;
 
   void getUser() {
     userData.value = serverService.getCachedUser();

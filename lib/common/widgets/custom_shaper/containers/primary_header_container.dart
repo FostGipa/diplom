@@ -15,25 +15,32 @@ class TPrimaryHeaderContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
+    return Material(
+      elevation: 4,
       borderRadius: BorderRadius.circular(25),
-      child: Container(
-        color: backgroundColor,
-        padding: const EdgeInsets.only(bottom: 0),
-        child: Stack(
-          children: [
-            Positioned(
-              top: -50,
-              right: -80,
-              child: TCircularContainer(backgroundColor: circularColor),
-            ),
-            Positioned(
-              top: 30,
-              right: -100,
-              child: TCircularContainer(backgroundColor: circularColor),
-            ),
-            child,
-          ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(25),
+        child: Container(
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(25),
+          ),
+          padding: const EdgeInsets.only(bottom: 0),
+          child: Stack(
+            children: [
+              Positioned(
+                top: -50,
+                right: -80,
+                child: TCircularContainer(backgroundColor: circularColor),
+              ),
+              Positioned(
+                top: 30,
+                right: -100,
+                child: TCircularContainer(backgroundColor: circularColor),
+              ),
+              child,
+            ],
+          ),
         ),
       ),
     );

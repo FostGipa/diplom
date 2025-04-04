@@ -6,23 +6,25 @@ import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final String label;
-  final IconData prefixIcon;
+  final IconData? prefixIcon;
   final IconData? suffixIcon;
   final String? hint;
   final TextInputType? keyboardType;
   final FocusNode? focusNode;
   final bool isPassword;
+  final bool readOnly;
   final MaskTextInputFormatter? formatter;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final void Function(String)? onSubmitted;
+  final void Function()? onTap;
   final bool enabled;
 
   const CustomTextField({
     super.key,
     required this.controller,
     required this.label,
-    required this.prefixIcon,
+    this.prefixIcon,
     this.focusNode,
     this.keyboardType,
     this.hint,
@@ -32,6 +34,8 @@ class CustomTextField extends StatefulWidget {
     this.validator,
     this.onChanged,
     this.onSubmitted,
+    this.readOnly = false,
+    this.onTap,
     this.enabled = true
   });
 
@@ -60,7 +64,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
       keyboardType: widget.keyboardType,
       focusNode: widget.focusNode,
       onChanged: widget.onChanged,
+      readOnly: widget.readOnly,
       onFieldSubmitted: widget.onSubmitted,
+      onTap: widget.onTap,
+      style: TextStyle(fontSize: 18),
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hint,
@@ -82,7 +89,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
       enabled: widget.enabled,
       focusNode: widget.focusNode,
       keyboardType: widget.keyboardType,
+      readOnly: widget.readOnly,
       onChanged: widget.onChanged,
+      style: TextStyle(fontSize: 18),
+      onTap: widget.onTap,
       onFieldSubmitted: widget.onSubmitted,
       inputFormatters: widget.formatter != null ? [widget.formatter!] : [],
       decoration: InputDecoration(

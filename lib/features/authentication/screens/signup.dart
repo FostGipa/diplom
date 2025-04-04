@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:intl/intl.dart';
 import '../../../utils/constants/colors.dart';
 import '../../../utils/validators/validation.dart';
 import '../controllers/signup_controller.dart';
@@ -65,7 +66,6 @@ class SignupScreenState extends State<SignupScreen> {
             SizedBox(
                 width: double.infinity,
                 child: Obx(() => AnimatedToggleSwitch<int>.size(
-                  textDirection: TextDirection.rtl,
                   current: controller.userRole.value,
                   values: const [0, 1],
                   iconOpacity: 1,
@@ -120,26 +120,23 @@ class SignupScreenState extends State<SignupScreen> {
               },
               label: "ФИО",
               prefixIcon: Iconsax.user,
-              onSubmitted: (value) {
-                controller.processFullName();
-              },
             ),
 
             Obx(() {
-              if (controller.addressSuggestions.isEmpty) {
+              if (controller.fioSuggestions.isEmpty) {
                 return SizedBox.shrink();
               }
 
               return SizedBox(
                 height: 200,
                 child: ListView.builder(
-                  itemCount: controller.addressSuggestions.length,
+                  itemCount: controller.fioSuggestions.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      title: Text(controller.addressSuggestions[index]),
+                      title: Text(controller.fioSuggestions[index]),
                       onTap: () {
-                        controller.name.text = controller.addressSuggestions[index];
-                        controller.addressSuggestions.clear();
+                        controller.name.text = controller.fioSuggestions[index];
+                        controller.fioSuggestions.clear();
                       },
                     );
                   },
@@ -165,7 +162,7 @@ class SignupScreenState extends State<SignupScreen> {
                 border: OutlineInputBorder(),
               ),
               icon: Icon(Icons.keyboard_arrow_down),
-              style: TextStyle(color: Colors.black, fontFamily: 'VK Sans', fontWeight: FontWeight.w500),
+              style: TextStyle(color: Colors.black, fontFamily: 'VK Sans', fontWeight: FontWeight.w500, fontSize: 18),
               items: <String>['Мужской', 'Женский'].map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -175,6 +172,45 @@ class SignupScreenState extends State<SignupScreen> {
               onChanged: (value) {
                 controller.gender.value = value!;
               },
+            ),
+
+            SizedBox(height: TSizes.spaceBtwInputFields),
+
+            InkWell(
+              onTap: () async {
+                final DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(Duration(days: 365)),
+                  locale: Locale('ru', 'RU'),
+                );
+                if (picked != null && picked != controller.selectedDate) {
+                  setState(() {
+                    controller.selectedDate = picked;
+                  });
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Icon(Iconsax.calendar, color: Colors.grey),
+                    SizedBox(width: TSizes.md),
+                    Text(
+                      controller.selectedDate != null
+                          ? DateFormat('d MMMM, y', 'ru_RU').format(controller.selectedDate!)
+                          : 'Дата рождения',
+                      style: TextStyle(fontSize: 18, color: Colors.black),
+                    ),
+                  ],
+                ),
+              ),
             ),
 
             Obx(() => AnimatedCrossFade(
@@ -221,9 +257,10 @@ class SignupScreenState extends State<SignupScreen> {
                 onPressed: () {
                   if (controller.formKey.currentState!.validate()) {
                     if (controller.privacyPolicy.value == true) {
-                      controller.addNewVolunteer();
+                      controller.processFullName();
+                      controller.addNewUser();
                     } else {
-                      TLoaders.errorSnackBar(title: 'Ошибка', message: 'Примите пользовательское соглашение');
+                      TLoaders.warningSnackBar(title: 'Ошибка', message: 'Примите пользовательское соглашение');
                     }
                   }
                 },

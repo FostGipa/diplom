@@ -6,9 +6,10 @@ class Volunteer {
   final String name;
   final String? middleName;
   final String gender;
-  final String passportSerial;
-  final String passportNumber;
-  final String? dobroId;
+  final String dateOfBirth;
+  final int? passportSerial;
+  final int? passportNumber;
+  final int? dobroId;
 
   Volunteer({
     this.idVolunteer,
@@ -18,6 +19,7 @@ class Volunteer {
     required this.name,
     this.middleName,
     required this.gender,
+    required this.dateOfBirth,
     required this.passportSerial,
     required this.passportNumber,
     this.dobroId,
@@ -30,6 +32,7 @@ class Volunteer {
       'name': name,
       'middle_name': middleName,
       'gender': gender,
+      'date_of_birth': dateOfBirth,
       'passport_serial': passportSerial,
       'passport_number': passportNumber,
       'dobro_id': dobroId,
@@ -43,11 +46,21 @@ class Volunteer {
       phoneNumber: json['phone_number'] as String? ?? '',
       lastName: json['lastName'] as String? ?? '',
       name: json['name'] as String? ?? '',
-      middleName: json['middleName'] as String? ?? '',
+      middleName: json['middle_name'] as String? ?? '',
       gender: json['gender'] as String? ?? '',
-      passportSerial: json['passportSerial'] as String? ?? '',
-      passportNumber: json['passportNumber'] as String? ?? '',
-      dobroId: json['DobroID'] as String? ?? '',
+      dateOfBirth: json['date_of_birth'] as String? ?? '',
+      passportSerial: json['passport_serial'] as int?,
+      passportNumber: json['passport_number'] as int?,
+      dobroId: json['dobro_id'] as int?,
     );
+  }
+
+  @override
+  String toString() {
+    return 'Volunteer(idVolunteer: $idVolunteer, idUser: $idUser, '
+        'phoneNumber: $phoneNumber, lastName: $lastName, name: $name, '
+        'middleName: $middleName, gender: $gender, dateOfBirth: $dateOfBirth, '
+        'passportSerial: $passportSerial, passportNumber: $passportNumber, '
+        'dobroId: $dobroId)';
   }
 }

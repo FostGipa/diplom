@@ -14,7 +14,7 @@ class TFormatters {
   );
 
   final MaskTextInputFormatter phoneMask = MaskTextInputFormatter(
-    mask: '+7 (###) ###-##-##',
+    mask: '+# (###) ###-##-##',
     filter: {"#": RegExp(r'\d')},
   );
 }

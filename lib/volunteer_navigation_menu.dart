@@ -1,4 +1,5 @@
-import 'package:app/features/volunteer/home/screens/home.dart';
+import 'package:app/features/volunteer/home/screens/all_tasks.dart';
+import 'package:app/features/volunteer/home/screens/volunteer_home.dart';
 import 'package:app/features/volunteer/profile/screens/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg_icons/flutter_svg_icons.dart';
@@ -35,6 +36,6 @@ class VolunteerNavigationMenu extends StatelessWidget {
 class NavigationController extends GetxController {
   final Rx<int> selectedIndex = 0.obs;
 
-  final screens = [const VolunteerHomeScreen(), Container(color: Colors.orange), const ProfileScreen()];
+  final screens = [const VolunteerHomeScreen(), const AllTasksScreen(), const ProfileScreen()];
 
 }

@@ -1,6 +1,7 @@
 import 'package:app/client_navigation_menu.dart';
 import 'package:app/data/models/user_model.dart';
 import 'package:app/server/service.dart';
+import 'package:app/volunteer_navigation_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../utils/formatters/formatter.dart';
@@ -42,8 +43,7 @@ class LoginController extends GetxController {
       ServerService serverService = ServerService();
       String? otp = await serverService.sendOtp(formattedPhone);
       if (otp != null) {
-        receivedOtp?.value = otp; // Сохраняем полученный OTP
-        print("Полученный OTP: $otp");
+        receivedOtp?.value = otp;
       } else {
         print("Ошибка при получении OTP");
       }
@@ -64,10 +64,12 @@ class LoginController extends GetxController {
   }
 
   void pinCompleted(String phoneNumber) async {
-    final User user  = await serverService.getUser(phoneController.text) as User;
-    print(user.role);
+    String formattedPhone = phoneNumber.replaceAll(RegExp(r'\D'), '');
+    final User user  = await serverService.getUser(formattedPhone) as User;
     if (user.role == "Клиент") {
       Get.offAll(ClientNavigationMenu());
+    } else if (user.role == "Волонтер") {
+      Get.offAll(VolunteerNavigationMenu());
     }
   }
 }

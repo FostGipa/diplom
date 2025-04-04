@@ -2,33 +2,43 @@ import 'package:app/data/models/client_model.dart';
 import 'package:app/data/models/volunteer_model.dart';
 
 class TaskModel {
-  int id;
+  int? id;
+  String? taskNumber;
   String taskName;
   String taskDescription;
   String taskComment;
   List<String> taskCategories;
-  Client client;
-  List<Volunteer> volunteers;
+  String taskDuration;
+  Client? client;
+  int? clientId;
+  List<Volunteer>? volunteers;
+  List<int>? volunteersId;
   int taskVolunteersCount;
   String taskStartDate;
   String taskStartTime;
-  String taskEndDate;
+  String? taskEndDate;
+  String? taskEndTime;
   String taskAddress;
   String taskCoordinates;
   String taskStatus;
 
   TaskModel({
-    required this.id,
+    this.id,
+    this.taskNumber,
     required this.taskName,
     required this.taskDescription,
     required this.taskComment,
     required this.taskCategories,
-    required this.client,
-    required this.volunteers,
+    required this.taskDuration,
+    this.client,
+    this.clientId,
+    this.volunteers,
+    this.volunteersId,
     required this.taskVolunteersCount,
     required this.taskStartDate,
     required this.taskStartTime,
-    required this.taskEndDate,
+    this.taskEndDate,
+    this.taskEndTime,
     required this.taskAddress,
     required this.taskCoordinates,
     required this.taskStatus,
@@ -37,7 +47,9 @@ class TaskModel {
   factory TaskModel.fromJson(Map<String, dynamic> json) {
     return TaskModel(
       id: json['id_task'] as int? ?? 0,
+      taskNumber: json['task_number'],
       taskName: json['task_name'] as String? ?? '',
+      taskDuration: json['task_duration'] as String? ?? '',
       taskDescription: json['task_description'] as String? ?? '',
       taskComment: json['task_comment'] as String? ?? '',
       taskCategories: List<String>.from(json['task_categories'] ?? []),
@@ -46,6 +58,7 @@ class TaskModel {
         'name': json['client_name'],
         'last_name': json['client_last_name'],
         'middle_name': json['client_middle_name'],
+        'date_of_birth': json['client_date_of_birth'],
         'phone_number': json['client_phone']
       }),
       volunteers: (json['volunteers'] as List<dynamic>?)
@@ -55,6 +68,7 @@ class TaskModel {
       taskStartDate: json['task_start_date'] as String? ?? '',
       taskStartTime: json['task_start_time'] as String? ?? '',
       taskEndDate: json['task_end_date'] as String? ?? '',
+      taskEndTime: json['task_end_time'] as String? ?? '',
       taskAddress: json['task_address'] as String? ?? '',
       taskCoordinates: json['task_coordinates'] as String? ?? '',
       taskStatus: json['task_status'] as String? ?? '',
@@ -67,8 +81,10 @@ class TaskModel {
     return '''
       TaskModel(
         id: $id,
+        taskNumber: $taskNumber,
         taskName: $taskName,
         taskDescription: $taskDescription,
+        taskDuration: $taskDuration,
         taskComment: $taskComment,
         taskCategories: $taskCategories,
         client: $client,
@@ -77,6 +93,7 @@ class TaskModel {
         taskStartDate: $taskStartDate,
         taskStartTime: $taskStartTime,
         taskEndDate: $taskEndDate,
+        taskEndTime: $taskEndTime,
         taskAddress: $taskAddress,
         taskCoordinates: $taskCoordinates,
         taskStatus: $taskStatus
@@ -84,23 +101,25 @@ class TaskModel {
       ''';
   }
 
-
-  // Map<String, dynamic> toJson() {
-  //   return {
-  //     'id_task': id,
-  //     'task_name': taskName,
-  //     'task_description': taskDescription,
-  //     'task_comment': taskComment,
-  //     'task_categories': taskCategories,
-  //     'id_client': taskClientId,
-  //     'id_volunteers': taskVolunteerIds,
-  //     'task_volunteers_count': taskVolunteersCount,
-  //     'task_start_date': taskStartDate,
-  //     'task_start_time': taskStartTime,
-  //     'task_end_date': taskEndDate,
-  //     'task_address': taskAddress,
-  //     'task_coordinates': taskCoordinates,
-  //     'task_status': taskStatus
-  //   };
-  // }
+  Map<String, dynamic> toJson() {
+    return {
+      'id_task': id,
+      'task_number': taskNumber,
+      'task_name': taskName,
+      'task_description': taskDescription,
+      'task_duration': taskDuration,
+      'task_comment': taskComment,
+      'task_categories': taskCategories,
+      'id_client': clientId,
+      'id_volunteers': volunteersId,
+      'task_volunteers_count': taskVolunteersCount,
+      'task_start_date': taskStartDate,
+      'task_start_time': taskStartTime,
+      'task_end_date': taskEndDate,
+      'task_end_time': taskEndTime,
+      'task_address': taskAddress,
+      'task_coordinates': taskCoordinates,
+      'task_status': taskStatus,
+    };
+  }
 }

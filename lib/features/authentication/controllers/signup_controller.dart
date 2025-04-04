@@ -15,7 +15,7 @@ class SignupController extends GetxController {
   final phone = TextEditingController();
   final passport = TextEditingController();
   final dobroID = TextEditingController();
-  var addressSuggestions = <String>[].obs;
+  var fioSuggestions = <String>[].obs;
   final ServerService serverService = ServerService();
   final TFormatters formatters = TFormatters();
   String lastName = '';
@@ -24,9 +24,10 @@ class SignupController extends GetxController {
   String series = '';
   String number = '';
   final RxString gender = ''.obs;
+  DateTime? selectedDate;
 
   SignupController({required String phoneNumber}) {
-    phone.text = phoneNumber;
+    phone.text = formatters.phoneMask.maskText(phoneNumber);
   }
 
   void processFullName() {
@@ -68,28 +69,30 @@ class SignupController extends GetxController {
 
   void fetchFioSuggestions(String query) async {
     if (query.isEmpty) {
-      addressSuggestions.clear();
+      fioSuggestions.clear();
       return;
     }
 
     final fetchedSuggestions = await serverService.fetchFioSuggestions(query);
     if (fetchedSuggestions != null) {
-      addressSuggestions.value = fetchedSuggestions;
+      fioSuggestions.value = fetchedSuggestions;
     }
   }
 
-  void addNewVolunteer() async {
+  void addNewUser() async {
+    String formattedPhone = phone.text.replaceAll(RegExp(r'\D'), '');
     if (userRole.value == 0) {
       serverService.addVolunteer(
           Volunteer(
-              phoneNumber: phone.text,
+              phoneNumber: formattedPhone,
               lastName: lastName,
               name: firstName,
               middleName: middleName,
               gender: gender.value,
-              passportSerial: series,
-              passportNumber: number,
-              dobroId: dobroID.text
+              dateOfBirth: "${selectedDate?.year}-${selectedDate?.month}-${selectedDate?.day}",
+              passportSerial: int.parse(series),
+              passportNumber: int.parse(number),
+              dobroId: int.parse(dobroID.text)
           )
       );
     } else {
@@ -99,7 +102,8 @@ class SignupController extends GetxController {
             name: firstName,
             middleName: middleName,
             gender: gender.value,
-            phoneNumber: phone.text
+            dateOfBirth: "${selectedDate?.year}-${selectedDate?.month}-${selectedDate?.day}",
+            phoneNumber: formattedPhone
         )
       );
     }

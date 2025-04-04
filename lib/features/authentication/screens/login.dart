@@ -95,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     formatter: controller.formatters.phoneMask,
                     prefixIcon: Iconsax.call,
                     isPassword: false,
-                    hint: '+7 (___) ___-__-__',
+                    hint: '+_ (___) ___-__-__',
                     onChanged: (value) {
                       controller.phoneNumber.value = value;
                     },

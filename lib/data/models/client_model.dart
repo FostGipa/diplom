@@ -5,6 +5,7 @@ class Client {
   final String name;
   final String? middleName;
   final String gender;
+  final String dateOfBirth;
   final String phoneNumber;
 
   Client({
@@ -14,6 +15,7 @@ class Client {
     required this.name,
     this.middleName,
     required this.gender,
+    required this.dateOfBirth,
     required this.phoneNumber,
   });
 
@@ -24,6 +26,7 @@ class Client {
       'name': name,
       'middle_name': middleName,
       'gender': gender,
+      'date_of_birth': dateOfBirth,
       'phone_number': phoneNumber,
     };
   }
@@ -36,6 +39,7 @@ class Client {
       name: json['name'] as String? ?? '',
       middleName: json['middle_name'] as String? ?? '',
       gender: json['gender'] as String? ?? '',
+      dateOfBirth: json['date_of_birth'] as String? ?? '',
       phoneNumber: json['phone_number'] as String? ?? '',
     );
   }
