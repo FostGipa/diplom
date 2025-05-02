@@ -4,6 +4,7 @@ import 'package:app/server/service.dart';
 import 'package:app/volunteer_navigation_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import '../../../utils/formatters/formatter.dart';
 
 class LoginController extends GetxController {
@@ -71,5 +72,9 @@ class LoginController extends GetxController {
     } else if (user.role == "Волонтер") {
       Get.offAll(VolunteerNavigationMenu());
     }
+  }
+
+  Future<void> onLogin(String userId) async {
+    await OneSignal.login(userId);
   }
 }

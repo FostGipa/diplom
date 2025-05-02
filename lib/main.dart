@@ -18,16 +18,12 @@ Future<void> main() async {
       apiKey: '15f1c5e6-b50b-49f5-a491-57f675d736e7'
   );
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-
   OneSignal.initialize("0f9bc5a7-5f0a-43c4-8227-cd50d7e47637");
-
   OneSignal.Notifications.requestPermission(true);
-
-  String? playerId = await OneSignal.User.getOnesignalId().then((state) {
-    return state;
-  });
 
   FlutterNativeSplash.remove();
 
   runApp(const App());
 }
+
+

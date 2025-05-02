@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-
-import '../../../../common/styles/spacing_styles.dart';
 import '../../../../common/widgets/custom_date_time_picker.dart';
 import '../../../../common/widgets/custom_text_field.dart';
 import '../../../../utils/constants/colors.dart';
 import '../../../../utils/constants/sizes.dart';
+import '../../../../utils/validators/banned_words.dart';
 import '../../../../utils/validators/validation.dart';
 import '../controllers/task_create_controller.dart';
 
@@ -19,7 +18,9 @@ class ClientTaskCreateScreen extends StatefulWidget {
 }
 
 class _ClientTaskCreateScreenState extends State<ClientTaskCreateScreen> {
+
   final TaskCreateController controller = Get.put(TaskCreateController());
+  final BannedWords bannedWords = BannedWords();
 
   @override
   void initState() {
@@ -30,27 +31,29 @@ class _ClientTaskCreateScreenState extends State<ClientTaskCreateScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        leading: IconButton(onPressed: () {
+          if (controller.currentStep > 0) {
+            controller.previousPage();
+          } else {
+            Get.back(); // Возврат назад, если это первый этап
+          }
+        }, icon: Icon(Iconsax.arrow_left_2)),
+        title: Text('Новая заявка', style: TextStyle(
+          fontWeight: FontWeight.w600,
+          fontSize: 24,
+        )),
+      ),
       body: Padding(
-        padding: TSpacingStyle.paddingWithAppBarHeight,
+        padding: EdgeInsets.all(TSizes.defaultSpace),
         child: Column(
           children: [
-            /// Статичная верхняя часть
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: Icon(Iconsax.arrow_left),
-                  onPressed: controller.currentStep > 0 ? controller.previousPage : null,
-                ),
-              ],
-            ),
-            SizedBox(height: TSizes.spaceBtwItems),
-
             /// PageView для шагов
             Expanded(
               child: PageView(
                 controller: controller.pageController,
-                physics: NeverScrollableScrollPhysics(), // Запрещаем свайпы, управляем программно
+                physics: NeverScrollableScrollPhysics(),
                 onPageChanged: (index) {
                   setState(() {
                     controller.currentStep = index;
@@ -134,73 +137,125 @@ class _ClientTaskCreateScreenState extends State<ClientTaskCreateScreen> {
             SizedBox(height: TSizes.spaceBtwSections),
             CustomTextField(
               controller: controller.taskName,
-              validator: (value) => TValidator.validateEmptyText('Название', value),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Введите название задачи';
+                }
+                if (controller.bannedWords.containsBadWords(value)) {
+                  return 'Содержит недопустимые слова';
+                }
+                return null;
+              },
               prefixIcon: Iconsax.document,
               label: 'Название',
-              keyboardType: TextInputType.number,
-              onChanged: (value) => controller.validateField(0, value),
+              onChanged: (_) => controller.validateSecondPage(),
             ),
             SizedBox(height: TSizes.spaceBtwInputFields),
-            TextField(
+
+            // Поле "Описание"
+            TextFormField(
               controller: controller.taskDescription,
               decoration: InputDecoration(
-                  border: OutlineInputBorder(), hintText: 'Описание', hintStyle: TextStyle(fontSize: 18)),
-              style: TextStyle(fontSize: 18),
+                border: OutlineInputBorder(),
+                hintText: 'Подробно опишите задачу',
+              ),
               maxLines: 5,
-              onChanged: (value) => controller.validateField(1, value),
+              style: TextStyle(fontSize: 18),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Введите описание задачи';
+                }
+                if (controller.bannedWords.containsBadWords(value)) {
+                  return 'Содержит недопустимые слова';
+                }
+                return null;
+              },
+              onChanged: (_) => controller.validateSecondPage(),
             ),
             SizedBox(height: TSizes.spaceBtwInputFields),
+
+            // Поле "Количество волонтеров"
             CustomTextField(
               controller: controller.taskVolunteersCount,
-              validator: (value) => TValidator.validateEmptyText('Кол-во', value),
               prefixIcon: Iconsax.profile_2user,
-              label: 'Кол-во требуемых волонтеров',
+              label: 'Кол-во волонтеров',
               keyboardType: TextInputType.number,
-              onChanged: (value) => controller.validateField(2, value),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Введите количество';
+                }
+                if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                  return 'Введите число больше 0';
+                }
+                if (int.parse(value) > 3) {
+                  return 'Максимальное кол-во волонтеров - 3';
+                }
+                return null;
+              },
+              onChanged: (_) => controller.validateSecondPage(),
             ),
             SizedBox(height: TSizes.spaceBtwInputFields),
+
+            // Поле "Продолжительность"
             CustomTextField(
               controller: controller.taskDuration,
-              validator: (value) => TValidator.validateEmptyText('Продолжительность', value),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Выберите продолжительность';
+                }
+                return null;
+              },
               prefixIcon: Iconsax.timer,
               label: 'Продолжительность',
               readOnly: true,
               onTap: () async {
-                TimeOfDay? pickedTime = await showTimePicker(
+                final time = await showTimePicker(
                   context: context,
                   initialTime: TimeOfDay.now(),
                 );
-
-                if (pickedTime != null) {
-                  String formattedTime = pickedTime.format(context);
-                  controller.taskDuration.text = formattedTime;
-                  controller.updateDurationField(formattedTime);
+                if (time != null) {
+                  controller.taskDuration.text = time.format(context);
+                  controller.validateSecondPage();
                 }
               },
             ),
-
             SizedBox(height: TSizes.spaceBtwInputFields),
-            TextField(
+
+            // Поле "Комментарий" (необязательное)
+            TextFormField(
               controller: controller.taskComment,
               decoration: InputDecoration(
-                  border: OutlineInputBorder(), hintText: 'Комментарий', hintStyle: TextStyle(fontSize: 18)),
+                border: OutlineInputBorder(),
+                labelText: 'Комментарий (необязательно)',
+              ),
               style: TextStyle(fontSize: 18),
-              maxLines: 5,
+              maxLines: 3,
+              validator: (value) {
+                if (value != null && value.isNotEmpty &&
+                    controller.bannedWords.containsBadWords(value)) {
+                  return 'Содержит недопустимые слова';
+                }
+                return null;
+              },
+              onChanged: (_) => controller.validateSecondPage(),
             ),
+
             SizedBox(height: TSizes.spaceBtwSections),
-            Obx(() {
-              return SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: controller.isFormValid.value ? () => controller.nextPage() : null,
-                  child: Text("Далее"),
-                ),
-              );
-            }),
+
+            // Кнопка "Далее"
+            Obx(() => SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: controller.isSecondPageValid.value
+                    ? () => controller.nextPage()
+                    : null,
+                child: Text("Далее"),
+              ),
+            )),
             SizedBox(height: TSizes.spaceBtwSections),
           ],
         ),
-      )
+      ),
     );
   }
 
@@ -210,98 +265,166 @@ class _ClientTaskCreateScreenState extends State<ClientTaskCreateScreen> {
       child: Form(
         key: controller.thirdFormKey,
         child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Информация о заявке', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600)),
-              SizedBox(height: TSizes.spaceBtwSections),
-              CustomTextField(
-                validator: (value) => TValidator.validateEmptyText('ФИО', value),
-                prefixIcon: Iconsax.user,
-                label: 'Фамилия Имя Отчество',
-                controller: controller.fullName,
-              ),
-              SizedBox(height: TSizes.spaceBtwInputFields),
-              CustomTextField(
-                validator: (value) => TValidator.validatePhoneNumber(value),
-                controller: controller.phoneController,
-                label: 'Номер телефона',
-                keyboardType: TextInputType.number,
-                formatter: controller.formatters.phoneMask,
-                prefixIcon: Iconsax.call,
-                hint: '+7 (___) ___-__-__',
-              ),
-              SizedBox(height: TSizes.spaceBtwInputFields),
-              CustomTextField(
-                controller: controller.taskAddress,
-                validator: (value) => TValidator.validateEmptyText('Адрес', value),
-                prefixIcon: Iconsax.location,
-                label: 'Адрес',
-                onChanged: (value) {
-                  controller.fetchAddressSuggestions(value);
-                },
-              ),
-              Obx(() {
-                if (controller.addressSuggestions.isEmpty) {
-                  return SizedBox.shrink();
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+                'Контактная информация',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w600)
+            ),
+            SizedBox(height: TSizes.spaceBtwSections),
+
+            // Поле ФИО
+            CustomTextField(
+              controller: controller.fullName,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Введите ФИО';
                 }
+                if (value.split(' ').length < 2) {
+                  return 'Введите полное ФИО (минимум имя и фамилию)';
+                }
+                return null;
+              },
+              prefixIcon: Iconsax.user,
+              label: 'Фамилия Имя Отчество',
+              onChanged: (_) => controller.validateThirdPage(),
+            ),
+            SizedBox(height: TSizes.spaceBtwInputFields),
 
-                return SizedBox(
-                  height: 200,
-                  child: ListView.builder(
-                    itemCount: controller.addressSuggestions.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(controller.addressSuggestions[index]),
-                        onTap: () {
-                          controller.taskAddress.text = controller.addressSuggestions[index];
-                          controller.addressSuggestions.clear();
-                        },
-                      );
-                    },
+            // Поле телефона
+            CustomTextField(
+              controller: controller.phoneController,
+              validator: (value) => TValidator.validatePhoneNumber(value),
+              label: 'Номер телефона',
+              keyboardType: TextInputType.phone,
+              formatter: controller.formatters.phoneMask,
+              prefixIcon: Iconsax.call,
+              hint: '+7 (___) ___-__-__',
+              onChanged: (_) => controller.validateThirdPage(),
+            ),
+            SizedBox(height: TSizes.spaceBtwInputFields),
+
+            // Поле адреса
+            CustomTextField(
+              controller: controller.taskAddress,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Введите адрес';
+                }
+                if (value.length < 10) {
+                  return 'Адрес слишком короткий';
+                }
+                return null;
+              },
+              prefixIcon: Iconsax.location,
+              label: 'Адрес',
+              onChanged: (value) {
+                controller.fetchAddressSuggestions(value);
+                controller.validateThirdPage();
+              },
+            ),
+
+            // Подсказки адреса
+            Obx(() {
+              if (controller.addressSuggestions.isEmpty) {
+                return SizedBox.shrink();
+              }
+              return Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListView.builder(
+                  padding: EdgeInsets.zero,
+                  itemCount: controller.addressSuggestions.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(controller.addressSuggestions[index]),
+                      onTap: () {
+                        controller.taskAddress.text = controller.addressSuggestions[index];
+                        controller.addressSuggestions.clear();
+                        controller.validateThirdPage();
+                      },
+                    );
+                  },
+                ),
+              );
+            }),
+            SizedBox(height: TSizes.spaceBtwInputFields),
+
+            // Выбор даты и времени
+            InkWell(
+              onTap: () async {
+                final result = await showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20)),
                   ),
+                  builder: (context) => DateAndTimePicker(),
                 );
-              }),
 
-              SizedBox(height: TSizes.spaceBtwInputFields),
-              InkWell(
-                onTap: () async {
-                  final result = await showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-                    builder: (context) => DateAndTimePicker(),
-                  );
-
-                  if (result != null && result['date'] != null && result['time'] != null) {
-                    setState(() {
-                      controller.selectedDate = result['date'];
-                      controller.selectedTime = result['time'];
-
-                      controller.taskStartDate.text = DateFormat('yyyy-MM-dd').format(controller.selectedDate!);
-                      controller.taskStartTime.text = controller.selectedTime!.format(context);
-                    });
-                  }
-                },
-                child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                  decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(14)),
-                  child: Row(
-                    children: [
-                      Icon(Iconsax.calendar, color: Colors.grey),
-                      SizedBox(width: TSizes.md),
-                      Text(
-                        controller.selectedDate != null && controller.selectedTime != null
-                            ? '${DateFormat('EEEE, d MMMM', 'ru_RU').format(controller.selectedDate!)} , ${controller.selectedTime!.format(context)}'
-                            : 'Выберите дату и время',
-                      ),
-                    ],
-                  ),
+                if (result != null) {
+                  setState(() {
+                    controller.selectedDate = result['date'];
+                    controller.selectedTime = result['time'];
+                    controller.taskStartDate.text =
+                        DateFormat('yyyy-MM-dd').format(controller.selectedDate!);
+                    controller.taskStartTime.text =
+                        controller.selectedTime!.format(context);
+                  });
+                  controller.validateThirdPage();
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Iconsax.calendar, color: Colors.grey),
+                    SizedBox(width: TSizes.md),
+                    Text(
+                      controller.selectedDate != null && controller.selectedTime != null
+                          ? '${DateFormat('EEEE, d MMMM', 'ru_RU').format(controller.selectedDate!)} , ${controller.selectedTime!.format(context)}'
+                          : 'Выберите дату и время',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(height: TSizes.spaceBtwInputFields),
-              OutlinedButton(onPressed: controller.sendTask, child: Text("Отправить заявку")),
-            ],
-        )
+            ),
+            SizedBox(height: TSizes.spaceBtwSections),
+
+            // Кнопка отправки
+            Obx(() {
+              final isValid = controller.isThirdPageValid.value;
+              final isDateSelected = controller.selectedDate != null &&
+                  controller.selectedTime != null;
+
+              return SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isValid && isDateSelected
+                      ? () => controller.sendTask()
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text(
+                    "Отправить заявку",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                ),
+              );
+            }),
+            SizedBox(height: TSizes.spaceBtwSections),
+          ],
+        ),
       ),
     );
   }

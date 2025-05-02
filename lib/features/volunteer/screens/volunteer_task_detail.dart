@@ -1,33 +1,34 @@
 import 'package:app/data/models/task_model.dart';
-import 'package:app/features/client/home/controllers/task_detail_controller.dart';
-import 'package:app/features/client/home/screens/task_edit.dart';
-import 'package:app/features/common/screens/chat.dart';
+import 'package:app/features/common/screens/qr_scanner.dart';
 import 'package:app/utils/constants/colors.dart';
 import 'package:app/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:intl/intl.dart';
-import 'package:qr_flutter/qr_flutter.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:slide_to_act/slide_to_act.dart';
 import 'package:yandex_maps_mapkit/mapkit_factory.dart';
 import 'package:yandex_maps_mapkit/mapkit.dart' as yandex_mapkit;
 import 'package:yandex_maps_mapkit/src/bindings/image/image_provider.dart' as yandex_image_provider;
 import 'package:yandex_maps_mapkit/yandex_map.dart';
 import '../../../../data/models/volunteer_model.dart';
+import '../../common/screens/chat.dart';
+import '../controllers/volunteer_task_detail_controller.dart';
 
-class TaskDetailScreen extends StatefulWidget {
+class VolunteerTaskDetail extends StatefulWidget {
   final TaskModel task;
 
-  const TaskDetailScreen({super.key, required this.task});
+  const VolunteerTaskDetail({super.key, required this.task});
 
   @override
-  State<TaskDetailScreen> createState() => _TaskDetailScreenState();
+  State<VolunteerTaskDetail> createState() => VolunteerTaskDetailState();
 }
 
-class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerProviderStateMixin{
+class VolunteerTaskDetailState extends State<VolunteerTaskDetail> {
 
-  final TaskDetailController _controller = Get.put(TaskDetailController());
-  late final AnimationController _lottieController;
+  final VolunteerTaskDetailController _controller = Get.put(VolunteerTaskDetailController());
+  final MobileScannerController controller = MobileScannerController();
   late final AppLifecycleListener lifecycleListener;
   yandex_mapkit.MapWindow? _mapWindow;
   bool _isMapkitActive = false;
@@ -37,9 +38,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
     super.initState();
     _controller.loadData();
     _controller.fetchTask(widget.task.id!);
-    _controller.initWebSocket();
     _startMapkit();
-    _lottieController = AnimationController(vsync: this);
 
     lifecycleListener = AppLifecycleListener(
       onResume: () {
@@ -50,12 +49,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
         _stopMapkit();
       },
     );
-  }
-
-  @override
-  void dispose() {
-    _lottieController.dispose();
-    super.dispose();
   }
 
   @override
@@ -174,93 +167,120 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
                     ),
                     SizedBox(height: TSizes.spaceBtwSections),
                     Container(
-                      alignment: Alignment.centerLeft,
-                      child: Obx(() {
-                        final task = _controller.taskData.value;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildCategoryChips(task!.taskCategories),
-                            SizedBox(height: TSizes.spaceBtwItems),
-                            _title(task.taskName),
-                            SizedBox(height: TSizes.spaceBtwItems),
-                            Text(task.taskDescription, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
-                            SizedBox(height: TSizes.spaceBtwItems),
-                            Text("Комментарий: ${task.taskComment}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
-                            SizedBox(height: TSizes.spaceBtwSections),
-                            _title('Действия'),
-                            SizedBox(height: TSizes.spaceBtwItems),
-                            _actionButtons(),
-                            SizedBox(height: TSizes.spaceBtwSections),
-                            _title('Информация'),
-                            SizedBox(height: TSizes.spaceBtwItems),
-                            Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.grey.shade300),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 5,
-                                    offset: Offset(0, 2),
+                        alignment: Alignment.centerLeft,
+                        child: Obx(() {
+                          final task = _controller.taskData.value;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildCategoryChips(task!.taskCategories),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              Text(task.taskName, style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              Text(task.taskDescription, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              Text("Комментарий: ${task.taskComment}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w400)),
+                              SizedBox(height: TSizes.spaceBtwSections),
+                              _title('Действия'),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              _actionButtons(),
+                              SizedBox(height: TSizes.spaceBtwSections),
+                              Text('Информация', style: TextStyle(fontSize: 23, fontWeight: FontWeight.bold)),
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              Container(
+                                  padding: EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(color: Colors.grey.shade300),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 5,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                  child: Column(
+                                    children: [
+                                      _buildInfoRow(Iconsax.calendar_add, _formatDate(task.taskStartDate), task.taskStartTime),
+                                      SizedBox(height: TSizes.spaceBtwInputFields),
+                                      _buildInfoRow(Iconsax.location, task.taskAddress, ""),
+                                      SizedBox(height: 12),
+                                      _buildInfoRow(Iconsax.user, "${task.client?.lastName} ${task.client?.name}", _controller.formatDate(task.client!.dateOfBirth)),
+                                    ],
+                                  )
                               ),
-                              child: Column(
-                                children: [
-                                  _buildInfoRow(Iconsax.calendar_add, _formatDate(task.taskStartDate), task.taskStartTime),
-                                  SizedBox(height: TSizes.spaceBtwInputFields),
-                                  _buildInfoRow(Iconsax.location, task.taskAddress, ""),
-                                  SizedBox(height: 12),
-                                  _buildInfoRow(Iconsax.user, "${task.client?.lastName} ${task.client?.name}", _controller.formatDate(task.client!.dateOfBirth)),
-                                ],
-                              )
-                            ),
-                            SizedBox(height: TSizes.spaceBtwSections),
-                            RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Волонтеры ',
-                                    style: TextStyle(
-                                      fontSize: 23,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black, // не забудь указать цвет
+                              SizedBox(height: TSizes.spaceBtwSections),
+                              RichText(
+                                text: TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Волонтеры ',
+                                      style: TextStyle(
+                                        fontSize: 23,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black, // не забудь указать цвет
+                                      ),
                                     ),
-                                  ),
-                                  TextSpan(
-                                    text: '${_controller.getVolunteersCount(task.volunteers!)}/${task.taskVolunteersCount}',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w400,
-                                      color: TColors.textGrey,
+                                    TextSpan(
+                                      text: '${_controller.getVolunteersCount(task.volunteers!)}/${task.taskVolunteersCount}',
+                                      style: TextStyle(
+                                        fontSize: 23,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black,
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            SizedBox(height: TSizes.spaceBtwItems),
-                            _buildVolunteerList(task.volunteers),
-                            SizedBox(height: TSizes.spaceBtwSections),
-                            SizedBox(
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                  onPressed: () async {
-                                    await Future.delayed(Duration(seconds: 1), () {
-                                      if (_controller.taskData.value?.taskStatus == 'В процессе') {
-                                        endTask();
-                                      }
-                                    });
-                                  },
-                                  child: Text('Завершить заявку')
-                              ),
-                            ),
-                            SizedBox(height: TSizes.spaceBtwSections),
-                          ],
-                        );
-                      })
+                              SizedBox(height: TSizes.spaceBtwItems),
+                              Obx(() => _buildVolunteerList(_controller.volunteers.toList()))                            ],
+                          );
+                        }
+                        )
+                    ),
+                    SizedBox(height: TSizes.spaceBtwSections),
+
+                    SlideAction(
+                      text: _controller.taskData.value?.taskStatus == 'В процессе'
+                          ? "Завершить заявку"
+                          : "Принять заявку",
+                      onSubmit: () async {
+                        await Future.delayed(Duration(seconds: 1), () {
+                          if (_controller.taskData.value?.taskStatus == 'В процессе') {
+                            _endTask();
+                          } else {
+                            acceptRequest();
+                          }
+                        });
+                        return null;
+                      },
+                      sliderButtonIcon: Icon(Icons.arrow_forward, color: Colors.green),
+                      innerColor: Colors.white,
+                      outerColor: TColors.green,
+                      borderRadius: 16,
+                      sliderRotate: false,
+                      elevation: 16,
+                      child: Text(
+                        _controller.taskData.value?.taskStatus == 'В процессе'
+                            ? "Завершить заявку"
+                            : "Принять заявку",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 18,
+                          fontFamily: 'VK Sans',
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: TSizes.spaceBtwSections),
+                    StreamBuilder(
+                      stream: _controller.messageStream,
+                      builder: (context, snapshot) {
+                        return Obx(() => _controller.lastMessage.isNotEmpty
+                            ? Text(_controller.lastMessage.value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
+                            : SizedBox.shrink());
+                      },
                     ),
                   ],
                 ),
@@ -314,30 +334,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
               onTap: () {
-                Get.to(TaskEditScreen(taskId: _controller.taskData.value!.id!));
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Iconsax.edit),
-                  SizedBox(height: 8),
-                  Text(
-                    'Редакт.',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 16,
-                    ),
-                    textAlign: TextAlign.center,
-                    softWrap: true,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
@@ -356,9 +352,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
                           minimumSize: const Size(0, 40),
                         ),
                         onPressed: () {
-                          _controller.cancelTask(_controller.taskData.value!.id!);
-                          Get.back();
-                          Get.back();
+                          // _controller.cancelTask(_controller.taskData.value!.id!);
+                          // Get.back();
+                          // Get.back();
                         },
                         child: const Text('Да, отменить'),
                       ),
@@ -372,7 +368,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
                   Icon(Iconsax.clipboard_close),
                   SizedBox(height: 8),
                   Text(
-                    'Отменить',
+                    'Отказаться',
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 16,
@@ -514,29 +510,29 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
 
   Widget _buildInfoRow(IconData icon, String line1, String? line2) {
     return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Icon(icon, size: 25),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(icon, size: 25),
+        SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                line1,
+                style: TextStyle(fontSize: 18),
+                softWrap: true,
+              ),
+              if (line2 != null && line2.isNotEmpty)
                 Text(
-                  line1,
+                  line2,
                   style: TextStyle(fontSize: 18),
                   softWrap: true,
                 ),
-                if (line2 != null && line2.isNotEmpty)
-                  Text(
-                    line2,
-                    style: TextStyle(fontSize: 18),
-                    softWrap: true,
-                  ),
-              ],
-            ),
+            ],
           ),
-        ],
+        ),
+      ],
     );
   }
 
@@ -585,38 +581,13 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
     }
   }
 
-  void endTask() {
-    Get.dialog(AlertDialog(
-      title: Text("Подтвердите завершение", textAlign: TextAlign.center,),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "Для завершения заявки волонтер должен отсканировать QR код.",
-            style: TextStyle(fontSize: 16),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 20),
-          Align(
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: 200,
-              height: 200,
-              child: QrImageView(
-                data: _controller.taskData.value!.id.toString(),
-                version: QrVersions.auto,
-                size: 200.0,
-              ),
-            ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: Text("Закрыть"),
-        ),
-      ],
-    ));
+  void acceptRequest() {
+    _controller.acceptTask(_controller.taskData.value!.id!, _controller.volunteerData.value!.idVolunteer!);
+    _controller.loadData();
+    _controller.update();
+  }
+
+  void _endTask() {
+    Get.to(() => QRScanScreen(idTask: _controller.taskData.value!.id.toString()));
   }
 }

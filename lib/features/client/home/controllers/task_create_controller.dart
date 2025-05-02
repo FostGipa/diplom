@@ -1,6 +1,7 @@
 import 'package:app/data/models/client_model.dart';
 import 'package:app/data/models/task_model.dart';
 import 'package:app/utils/loaders/loaders.dart';
+import 'package:app/utils/validators/banned_words.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../data/models/user_model.dart';
@@ -17,7 +18,7 @@ class TaskCreateController extends GetxController {
   final RxString phoneNumber = ''.obs;
   Rx<User?> userData = Rx<User?>(null);
   Rx<Client?> clientData = Rx<Client?>(null);
-
+  final BannedWords bannedWords = BannedWords();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController fullName = TextEditingController();
   final taskName = TextEditingController();
@@ -28,7 +29,6 @@ class TaskCreateController extends GetxController {
   final taskStartTime = TextEditingController();
   final taskAddress = TextEditingController();
   final taskDuration = TextEditingController();
-
   int currentStep = 0;
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
@@ -36,6 +36,8 @@ class TaskCreateController extends GetxController {
   var selectedServices = [false, false, false, false, false, false, false, false].obs;
   final isFormValid = false.obs;
   final isFieldValid = <bool>[].obs;
+  RxBool isSecondPageValid = false.obs;
+  RxBool isThirdPageValid = false.obs;
   final List<Map<String, String>> services = [
     {"title": "Физическая помощь", "subtitle": "(уборка, переезд, мелкий ремонт)"},
     {"title": "Доставка и покупки", "subtitle": "(лекарства, продукты, вещи)"},
@@ -50,12 +52,44 @@ class TaskCreateController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    isFieldValid.assignAll(List.generate(4, (_) => false));
+    isFieldValid.assignAll(List.generate(8, (_) => false));
   }
 
-  void validateField(int index, String? value) {
-    isFieldValid[index] = value != null && value.isNotEmpty;
-    updateFormValidity();
+  void validateSecondPage() {
+    final isFormValid = secondFormKey.currentState?.validate() ?? false;
+    final hasBadWords = _containsBadWordsInFields();
+
+    isSecondPageValid.value = isFormValid && !hasBadWords;
+
+    if (isFormValid && hasBadWords) {
+      TLoaders.errorSnackBar(
+          title: 'Ошибка',
+          message: 'Обнаружены недопустимые слова в полях'
+      );
+    }
+  }
+
+  bool _containsBadWordsInFields() {
+    return bannedWords.containsBadWords(taskName.text) ||
+        bannedWords.containsBadWords(taskDescription.text) ||
+        bannedWords.containsBadWords(taskComment.text);
+  }
+
+  void validateThirdPage() {
+    // Проверка валидации формы
+    final isFormValid = thirdFormKey.currentState?.validate() ?? false;
+
+    // Проверка что дата и время выбраны
+    final isDateTimeSelected = selectedDate != null && selectedTime != null;
+
+    isThirdPageValid.value = isFormValid && isDateTimeSelected;
+
+    if (!isDateTimeSelected && isFormValid) {
+      TLoaders.warningSnackBar(
+          title: 'Внимание',
+          message: 'Выберите дату и время выполнения задачи'
+      );
+    }
   }
 
   void updateDurationField(String value) {
@@ -64,7 +98,11 @@ class TaskCreateController extends GetxController {
     }
 
   void updateFormValidity() {
-    isFormValid.value = isFieldValid.every((valid) => valid);
+    // Общая валидация: обе страницы должны быть валидны
+    isFormValid.value = isSecondPageValid.value && isThirdPageValid.value;
+
+    // Выводим общую валидность для отладки
+    print("Form is valid: ${isFormValid.value}");
   }
 
   void toggleService(int index, bool value) {
@@ -73,13 +111,21 @@ class TaskCreateController extends GetxController {
 
   void nextPage() {
     if (currentStep < 2) {
-      pageController.nextPage(duration: Duration(milliseconds: 300), curve: Curves.ease);
+      currentStep++;
+      pageController.nextPage(
+          duration: Duration(milliseconds: 300),
+          curve: Curves.ease
+      );
     }
   }
 
   void previousPage() {
     if (currentStep > 0) {
-      pageController.previousPage(duration: Duration(milliseconds: 300), curve: Curves.ease);
+      currentStep--;
+      pageController.previousPage(
+          duration: Duration(milliseconds: 300),
+          curve: Curves.ease
+      );
     }
   }
 

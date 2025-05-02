@@ -75,7 +75,6 @@ class TaskModel {
     );
   }
 
-
   @override
   String toString() {
     return '''

@@ -2,14 +2,14 @@ import 'dart:async';
 import 'package:app/utils/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:app/data/models/client_model.dart';
 import '../../../../data/models/task_model.dart';
 import '../../../../data/models/user_model.dart';
+import '../../../../data/models/volunteer_model.dart';
 import '../../../../server/service.dart';
 
-class ClientHomeController extends GetxController {
+class VolunteerHomeController extends GetxController {
   final ServerService serverService = ServerService();
-  Rx<Client?> clientData = Rx<Client?>(null);
+  Rx<Volunteer?> volunteerData = Rx<Volunteer?>(null);
   Rx<User?> userData = Rx<User?>(null);
   RxList<TaskModel> activeTasks = <TaskModel>[].obs;
   var isLoading = true.obs;
@@ -23,21 +23,20 @@ class ClientHomeController extends GetxController {
     loadData();
   }
 
-  Future<void> fetchClientData(int userId) async {
+  Future<void> fetchVolunteerData(int userId) async {
     try {
-      clientData.value = await serverService.getClient(userId);
+      volunteerData.value = await serverService.getVolunteer(userId);
     } catch (e) {
       print("Ошибка при получении данных клиента: $e");
     }
   }
 
-  Future<void> fetchClientTasks(int clientId) async {
+  Future<void> fetchVolunteerTasks(int volunteerId) async {
     try {
-      List<TaskModel> tasks = await serverService.getClientTasks(clientId);
+      List<TaskModel> tasks = await serverService.getVolunteerTasks(volunteerId);
       activeTasks.assignAll(tasks);
-      print(activeTasks.length);
     } catch (e) {
-      print("Ошибка при получении задач клиента: $e");
+      print("Ошибка при получении задач: $e");
     }
   }
 
@@ -45,7 +44,7 @@ class ClientHomeController extends GetxController {
     switch (status) {
       case "Завершена":
         return TColors.green;
-      case "Отменена":
+      case "Отменен":
         return TColors.failed;
       default:
         return Colors.grey;
@@ -60,13 +59,12 @@ class ClientHomeController extends GetxController {
     isLoading.value = true;
     getUser();
     if (userData.value != null) {
-      await fetchClientData(userData.value!.idUser!);
-      if (clientData.value != null) {
-        await fetchClientTasks(clientData.value!.idClient!);
+      await fetchVolunteerData(userData.value!.idUser!);
+      if (volunteerData.value != null) {
+        await fetchVolunteerTasks(volunteerData.value!.idVolunteer!);
         activeTasks.refresh();
       }
     }
-
     isLoading.value = false;
     update();
   }

@@ -235,11 +235,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 return value == controller.receivedOtp?.value ? null : "Неверный код";
               },
               onCompleted: (pin) {
-                if (pin == controller.receivedOtp?.value) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                  controller.pinCompleted(controller.phoneNumber.value);
-                  // Get.offAll(SignupScreen(phoneNumber: controller.phoneNumber.value));
-                }
+                FocusManager.instance.primaryFocus?.unfocus();
+                controller.pinCompleted(controller.phoneNumber.value);
+                // if (pin == controller.receivedOtp?.value) {
+                //   FocusManager.instance.primaryFocus?.unfocus();
+                //   controller.pinCompleted(controller.phoneNumber.value);
+                //   // Get.offAll(SignupScreen(phoneNumber: controller.phoneNumber.value));
+                // }
               },
               pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
             ),

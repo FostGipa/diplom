@@ -4,7 +4,7 @@ import 'package:iconsax/iconsax.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class CustomTextField extends StatefulWidget {
-  final TextEditingController controller;
+  final TextEditingController? controller;
   final String label;
   final IconData? prefixIcon;
   final IconData? suffixIcon;
@@ -19,10 +19,11 @@ class CustomTextField extends StatefulWidget {
   final void Function(String)? onSubmitted;
   final void Function()? onTap;
   final bool enabled;
+  final String? initialValue;
 
   const CustomTextField({
     super.key,
-    required this.controller,
+    this.controller,
     required this.label,
     this.prefixIcon,
     this.focusNode,
@@ -36,7 +37,8 @@ class CustomTextField extends StatefulWidget {
     this.onSubmitted,
     this.readOnly = false,
     this.onTap,
-    this.enabled = true
+    this.enabled = true,
+    this.initialValue,
   });
 
   @override
@@ -68,6 +70,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       onFieldSubmitted: widget.onSubmitted,
       onTap: widget.onTap,
       style: TextStyle(fontSize: 18),
+      initialValue: widget.initialValue,
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hint,
@@ -95,6 +98,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       onTap: widget.onTap,
       onFieldSubmitted: widget.onSubmitted,
       inputFormatters: widget.formatter != null ? [widget.formatter!] : [],
+      initialValue: widget.initialValue,
       decoration: InputDecoration(
         labelText: widget.label,
         hintText: widget.hint,

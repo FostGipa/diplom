@@ -10,6 +10,10 @@ class Volunteer {
   final int? passportSerial;
   final int? passportNumber;
   final int? dobroId;
+  final int? helpHours;
+  final int? completedTasks;
+  final String? rating;
+  final int? ratingCount;
 
   Volunteer({
     this.idVolunteer,
@@ -23,6 +27,10 @@ class Volunteer {
     required this.passportSerial,
     required this.passportNumber,
     this.dobroId,
+    this.helpHours,
+    this.completedTasks,
+    this.rating,
+    this.ratingCount
   });
 
   Map<String, dynamic> toJson() {
@@ -36,6 +44,10 @@ class Volunteer {
       'passport_serial': passportSerial,
       'passport_number': passportNumber,
       'dobro_id': dobroId,
+      'help_hours': helpHours,
+      'completed_tasks': completedTasks,
+      'rating': rating,
+      'rating_count': ratingCount,
     };
   }
 
@@ -44,7 +56,7 @@ class Volunteer {
       idVolunteer: json['id_volunteer'] as int? ?? 0,
       idUser: json['id_user'] as int? ?? 0,
       phoneNumber: json['phone_number'] as String? ?? '',
-      lastName: json['lastName'] as String? ?? '',
+      lastName: json['last_name'] as String? ?? '',
       name: json['name'] as String? ?? '',
       middleName: json['middle_name'] as String? ?? '',
       gender: json['gender'] as String? ?? '',
@@ -52,6 +64,10 @@ class Volunteer {
       passportSerial: json['passport_serial'] as int?,
       passportNumber: json['passport_number'] as int?,
       dobroId: json['dobro_id'] as int?,
+      helpHours: json['help_hours'] as int?,
+      completedTasks: json['completed_tasks'] as int?,
+      rating: json['rating'] as String? ?? '',
+      ratingCount: json['rating_count'] as int?,
     );
   }
 

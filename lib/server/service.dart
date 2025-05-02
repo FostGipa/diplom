@@ -4,6 +4,8 @@ import 'package:app/features/authentication/screens/signup.dart';
 import 'package:app/utils/loaders/loaders.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+import '../data/models/message_model.dart';
 import '../data/models/user_model.dart';
 import '../data/models/volunteer_model.dart';
 import 'package:get_storage/get_storage.dart';
@@ -11,7 +13,7 @@ import 'package:get_storage/get_storage.dart';
 import '../data/models/task_model.dart';
 
 class ServerService {
-  static const String baseUrl = "http://10.0.2.2:3000";
+  static const String baseUrl = "http://80.78.243.244:3000";
 
   // Отправка OTP кода
   Future<String?> sendOtp(String phoneNumber) async {
@@ -135,6 +137,7 @@ class ServerService {
 
         // Сохраняем пользователя в кеш
         box.write("cached_user", jsonEncode(user.toJson()));
+        await OneSignal.login(user.idUser.toString());
 
         return user;
       } else if (response.statusCode == 404) {
@@ -306,6 +309,180 @@ class ServerService {
       return result;
     } else {
       throw Exception("Ошибка сервера: ${response.statusCode}");
+    }
+  }
+
+  Future<bool> acceptRequest(int idTask, int idVolunteer) async {
+    final url = Uri.parse("$baseUrl/bd/accept-request");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"id_task": idTask, "id_volunteers": idVolunteer}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print("Ошибка: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Ошибка запроса: $e");
+      return false;
+    }
+  }
+
+  Future<bool> endTask(String idTask) async {
+    final url = Uri.parse("$baseUrl/bd/complete-task");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"taskId": idTask}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print("Ошибка: ${response.body}");
+        return false;
+      }
+    } catch (e) {
+      print("Ошибка запроса: $e");
+      return false;
+    }
+  }
+
+  Future<void> updateVolunteerRating(int taskId, double userRating) async {
+    final url = Uri.parse("$baseUrl/bd/update-rating");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'id_task': taskId,
+          'new_rating': userRating,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        print('Рейтинг успешно обновлён: ${responseData}');
+        // Можешь показать уведомление пользователю или обновить локальные данные
+      } else {
+        print('Ошибка при обновлении рейтинга: ${response.body}');
+      }
+    } catch (e) {
+      print('Ошибка сети: $e');
+    }
+  }
+
+  Future<void> cancelTask(int taskId) async {
+    final url = Uri.parse("$baseUrl/bd/cancel-task");
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'taskId': taskId}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print('✅ Успех: ${data['message']}');
+      } else {
+        final error = jsonDecode(response.body);
+        print('❌ Ошибка: ${error['message']}');
+        throw Exception('Ошибка при отмене заявки: ${error['message']}');
+      }
+    } catch (e) {
+      print('❌ Ошибка запроса: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> sendMessage({required int taskId, required int senderId, required String messageText}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/bd/send-message'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'taskId': taskId,
+        'senderId': senderId,
+        'messageText': messageText,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body); // Возвращаем id_message и created_at
+    } else {
+      throw Exception('Ошибка отправки сообщения');
+    }
+  }
+
+  Future<List<Message>> getMessagesForTask(int taskId) async {
+    final url = Uri.parse('$baseUrl/bd/chat-messages?taskId=$taskId');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map<Message>((item) => Message.fromJson(item)).toList();
+      } else {
+        throw Exception('Ошибка получения сообщений: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Ошибка при получении сообщений: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> updateTask({
+    required int id,
+    required String taskName,
+    required String taskDescription,
+    required String taskComment,
+    required int taskVolunteersCount,
+    required String taskStartDate,
+    required String taskStartTime,
+    required String taskAddress,
+    required String taskDuration,
+  }) async {
+    try {
+      final url = Uri.parse('$baseUrl/bd/edit-task');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'taskId': id,
+          'taskName': taskName,
+          'taskDescription': taskDescription,
+          'taskComment': taskComment,
+          'taskVolunteersCount': taskVolunteersCount,
+          'taskStartDate': taskStartDate,
+          'taskStartTime': taskStartTime,
+          'taskAddress': taskAddress,
+          'taskDuration': taskDuration,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        print('Задача успешно обновлена');
+        return true;
+      } else {
+        print('Ошибка при обновлении задачи: ${response.statusCode} — ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('Ошибка при соединении с сервером: $e');
+      return false;
     }
   }
 }

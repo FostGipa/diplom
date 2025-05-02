@@ -1,39 +1,110 @@
+import 'package:app/data/models/menu.dart';
 import 'package:app/features/client/home/screens/client_home.dart';
+import 'package:app/features/client/home/screens/client_profile.dart';
+import 'package:app/features/common/screens/qr_scanner.dart';
+import 'package:app/utils/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg_icons/flutter_svg_icons.dart';
-import 'package:get/get.dart';
+import 'package:lottie/lottie.dart';
 
-class ClientNavigationMenu extends StatelessWidget {
+const Color bottomNavBgColor = Color(0xFF17203A);
+
+class ClientNavigationMenu extends StatefulWidget {
   const ClientNavigationMenu({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final controller = Get.put(NavigationController());
-    return Scaffold(
-      bottomNavigationBar: Obx(
-        () => NavigationBar(
-          height: 80,
-          elevation: 0,
-          selectedIndex: controller.selectedIndex.value,
-          onDestinationSelected: (index) => controller.selectedIndex.value = index,
-          backgroundColor: Colors.white,
-          indicatorColor: Colors.black.withOpacity(0.1),
+  State<ClientNavigationMenu> createState() => _ClientNavigationMenuState();
+}
 
-          destinations: const [
-            NavigationDestination(icon: SvgIcon(icon: SvgIconData('assets/icons/home.svg')), label: 'Главная'),
-            NavigationDestination(icon: SvgIcon(icon: SvgIconData('assets/icons/qrcode.svg')), label: 'QR-код'),
-            NavigationDestination(icon: SvgIcon(icon: SvgIconData('assets/icons/profile.svg')), label: 'Профиль'),
+class _ClientNavigationMenuState extends State<ClientNavigationMenu> {
+  int selectedNavIndex = 0;
+
+  List<LottieNavItem> bottomNavItems = [
+    LottieNavItem(asset: 'assets/lottie/home.json', label: 'Главная'),
+    LottieNavItem(asset: 'assets/lottie/qrcode.json', label: 'QR-код'),
+    LottieNavItem(asset: 'assets/lottie/user.json', label: 'Профиль'),
+  ];
+
+  final List<Widget> pages = [
+    ClientHomeScreen(),
+    QRScanScreen(),
+    ClientProfileScreen()
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBody: true,
+      body: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: pages[selectedNavIndex],
+      ),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        decoration: BoxDecoration(
+          color: bottomNavBgColor.withAlpha((0.8 * 255).toInt()),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: bottomNavBgColor.withAlpha((0.3 * 255).toInt()),
+              offset: const Offset(0, 20),
+              blurRadius: 20,
+            )
           ],
         ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: List.generate(bottomNavItems.length, (index) {
+              final item = bottomNavItems[index];
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedNavIndex = index;
+                  });
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AnimatedBar(isActive: selectedNavIndex == index),
+                    SizedBox(
+                      height: 36,
+                      width: 36,
+                      child: Lottie.asset(
+                        item.asset,
+                        repeat: selectedNavIndex == index,
+                        animate: selectedNavIndex == index,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ),
+        ),
       ),
-      body: Obx(() => controller.screens[controller.selectedIndex.value]),
     );
   }
 }
 
-class NavigationController extends GetxController {
-  final Rx<int> selectedIndex = 0.obs;
+class AnimatedBar extends StatelessWidget {
+  const AnimatedBar({
+    super.key, required this.isActive,
+  });
 
-  final screens = [const ClientHomeScreen(), Container(color: Colors.orange), Container(color: Colors.orange)];
+  final bool isActive;
 
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 200),
+      margin: EdgeInsets.only(bottom: 2),
+      height: 4,
+      width: isActive ? 20 : 0,
+      decoration: BoxDecoration(
+          color: TColors.green,
+          borderRadius: BorderRadius.all(Radius.circular(12))
+      ),
+    );
+  }
 }
