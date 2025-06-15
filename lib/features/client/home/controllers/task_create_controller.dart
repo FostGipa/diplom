@@ -84,12 +84,12 @@ class TaskCreateController extends GetxController {
 
     isThirdPageValid.value = isFormValid && isDateTimeSelected;
 
-    if (!isDateTimeSelected && isFormValid) {
-      TLoaders.warningSnackBar(
-          title: 'Внимание',
-          message: 'Выберите дату и время выполнения задачи'
-      );
-    }
+    // if (!isDateTimeSelected && isFormValid) {
+    //   TLoaders.warningSnackBar(
+    //       title: 'Внимание',
+    //       message: 'Выберите дату и время выполнения задачи'
+    //   );
+    // }
   }
 
   void updateDurationField(String value) {
@@ -131,14 +131,12 @@ class TaskCreateController extends GetxController {
 
   Future<void> sendTask() async {
     final result = await serverService.getAddressCoordinates(taskAddress.text);
-
     List<String> selectedCategories = services
         .asMap()
         .entries
         .where((entry) => selectedServices[entry.key])
         .map((entry) => entry.value["title"]!)
         .toList();
-
     await serverService.createTask(TaskModel(
         taskName: taskName.text,
         taskDescription: taskDescription.text,

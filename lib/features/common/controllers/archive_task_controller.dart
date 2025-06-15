@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -45,6 +47,7 @@ class ArchiveTaskController extends GetxController {
     try {
       TaskModel? task = await serverService.getTaskById(taskId);
       taskData.value = task;
+      Future.delayed(Duration.zero, checkAndShowReviewSheet);
     } catch (e) {
       print("Ошибка при получении задачи: $e");
     }
@@ -101,5 +104,70 @@ class ArchiveTaskController extends GetxController {
     final realVolunteers = volunteers.where((v) => v.idVolunteer != 0).toList();
 
     return realVolunteers.length;
+  }
+
+  void checkAndShowReviewSheet() {
+    if (taskData.value?.taskStatus == 'Завершена' && userData.value?.role == 'Волонтер') {
+      final storage = GetStorage();
+      final key = 'review_shown_${taskData.value?.id}';
+      final alreadyShown = storage.read(key) ?? false;
+
+      if (!alreadyShown) {
+        storage.write(key, true); // помечаем как показанное
+        showReviewBottomSheet();
+      }
+    }
+  }
+
+  void showReviewBottomSheet() {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Оцените клиента',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 24),
+            RatingBar.builder(
+              initialRating: 0,
+              minRating: 1,
+              direction: Axis.horizontal,
+              allowHalfRating: false,
+              itemCount: 5,
+              itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+              itemBuilder: (context, _) => const Icon(
+                Icons.star,
+                color: Colors.amber,
+              ),
+              onRatingUpdate: (rating) {
+                rateClient(taskData.value!.id!, rating);
+              },
+            ),
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Get.back(); // Закрыть bottom sheet
+                },
+                child: Text('Отправить'),
+              ),
+            )
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  Future<void> rateClient(int id, double rating) async {
+    await serverService.updateClientRating(id, rating);
   }
 }

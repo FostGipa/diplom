@@ -41,7 +41,6 @@ class _TaskEditScreenState extends State<TaskEditScreen> {
         ),
       ),
       body: Obx(() {
-        // Use `controller.isLoading` to show loading state
         if (controller.isLoading.value) {
           return Center(child: CircularProgressIndicator());
         }

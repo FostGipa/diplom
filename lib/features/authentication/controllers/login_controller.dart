@@ -5,6 +5,7 @@ import 'package:app/volunteer_navigation_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import '../../../moderator_navigation_menu.dart';
 import '../../../utils/formatters/formatter.dart';
 
 class LoginController extends GetxController {
@@ -67,14 +68,18 @@ class LoginController extends GetxController {
   void pinCompleted(String phoneNumber) async {
     String formattedPhone = phoneNumber.replaceAll(RegExp(r'\D'), '');
     final User user  = await serverService.getUser(formattedPhone) as User;
+    onLoginSuccess(user.idUser.toString());
     if (user.role == "Клиент") {
       Get.offAll(ClientNavigationMenu());
     } else if (user.role == "Волонтер") {
       Get.offAll(VolunteerNavigationMenu());
+    } else if (user.role == "Модератор") {
+      Get.offAll(ModeratorNavigationMenu());
     }
   }
 
-  Future<void> onLogin(String userId) async {
-    await OneSignal.login(userId);
+  Future<void> onLoginSuccess(String userUuid) async{
+    OneSignal.login(userUuid);
+    print(await OneSignal.User.getExternalId().toString());
   }
 }

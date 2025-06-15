@@ -203,11 +203,11 @@ class VolunteerTaskDetailState extends State<VolunteerTaskDetail> {
                                   ),
                                   child: Column(
                                     children: [
-                                      _buildInfoRow(Iconsax.calendar_add, _formatDate(task.taskStartDate), task.taskStartTime),
+                                      _buildInfoRow(Iconsax.calendar_add, _formatDate(task.taskStartDate), task.taskStartTime, ""),
                                       SizedBox(height: TSizes.spaceBtwInputFields),
-                                      _buildInfoRow(Iconsax.location, task.taskAddress, ""),
+                                      _buildInfoRow(Iconsax.location, task.taskAddress, "", ""),
                                       SizedBox(height: 12),
-                                      _buildInfoRow(Iconsax.user, "${task.client?.lastName} ${task.client?.name}", _controller.formatDate(task.client!.dateOfBirth)),
+                                      _buildInfoRow(Iconsax.user, "${task.client?.lastName} ${task.client?.name}", _controller.formatDate(task.client!.dateOfBirth), "Рейтинг: ${task.client!.rating!}"),
                                     ],
                                   )
                               ),
@@ -235,7 +235,8 @@ class VolunteerTaskDetailState extends State<VolunteerTaskDetail> {
                                 ),
                               ),
                               SizedBox(height: TSizes.spaceBtwItems),
-                              Obx(() => _buildVolunteerList(_controller.volunteers.toList()))                            ],
+                              Obx(() => _buildVolunteerList(_controller.volunteers.toList()))
+                            ],
                           );
                         }
                         )
@@ -243,12 +244,12 @@ class VolunteerTaskDetailState extends State<VolunteerTaskDetail> {
                     SizedBox(height: TSizes.spaceBtwSections),
 
                     SlideAction(
-                      text: _controller.taskData.value?.taskStatus == 'В процессе'
+                      text: _controller.taskData.value?.taskStatus == 'В процессе' || _controller.taskData.value?.taskStatus == 'Готова'
                           ? "Завершить заявку"
                           : "Принять заявку",
                       onSubmit: () async {
                         await Future.delayed(Duration(seconds: 1), () {
-                          if (_controller.taskData.value?.taskStatus == 'В процессе') {
+                          if (_controller.taskData.value?.taskStatus == 'В процессе' || _controller.taskData.value?.taskStatus == 'Готова') {
                             _endTask();
                           } else {
                             acceptRequest();
@@ -263,7 +264,7 @@ class VolunteerTaskDetailState extends State<VolunteerTaskDetail> {
                       sliderRotate: false,
                       elevation: 16,
                       child: Text(
-                        _controller.taskData.value?.taskStatus == 'В процессе'
+                        _controller.taskData.value?.taskStatus == 'В процессе' || _controller.taskData.value?.taskStatus == 'Готова'
                             ? "Завершить заявку"
                             : "Принять заявку",
                         style: TextStyle(
@@ -352,9 +353,9 @@ class VolunteerTaskDetailState extends State<VolunteerTaskDetail> {
                           minimumSize: const Size(0, 40),
                         ),
                         onPressed: () {
-                          // _controller.cancelTask(_controller.taskData.value!.id!);
-                          // Get.back();
-                          // Get.back();
+                          _controller.cancelParticipation();
+                          Get.back();
+                          Get.back();
                         },
                         child: const Text('Да, отменить'),
                       ),
@@ -508,7 +509,7 @@ class VolunteerTaskDetailState extends State<VolunteerTaskDetail> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String line1, String? line2) {
+  Widget _buildInfoRow(IconData icon, String line1, String? line2, String? line3) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -526,6 +527,12 @@ class VolunteerTaskDetailState extends State<VolunteerTaskDetail> {
               if (line2 != null && line2.isNotEmpty)
                 Text(
                   line2,
+                  style: TextStyle(fontSize: 18),
+                  softWrap: true,
+                ),
+              if (line3 != null && line3.isNotEmpty)
+                Text(
+                  line3,
                   style: TextStyle(fontSize: 18),
                   softWrap: true,
                 ),

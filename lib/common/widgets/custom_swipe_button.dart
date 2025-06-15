@@ -11,7 +11,7 @@ class SwipeButton extends StatefulWidget {
   });
 
   @override
-  _SwipeButtonState createState() => _SwipeButtonState();
+  State<SwipeButton> createState() => _SwipeButtonState();
 }
 
 class _SwipeButtonState extends State<SwipeButton> {

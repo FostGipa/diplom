@@ -32,6 +32,7 @@ class _ArchiveTaskState extends State<ArchiveTask> {
     super.initState();
     _controller.loadData();
     _controller.fetchTask(widget.task.id!);
+    _controller.checkAndShowReviewSheet();
     _startMapkit();
 
     lifecycleListener = AppLifecycleListener(

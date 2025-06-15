@@ -5,14 +5,17 @@ import 'package:app/utils/loaders/loaders.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:onesignal_flutter/onesignal_flutter.dart';
+import '../client_navigation_menu.dart';
 import '../data/models/message_model.dart';
 import '../data/models/user_model.dart';
 import '../data/models/volunteer_model.dart';
 import 'package:get_storage/get_storage.dart';
 
 import '../data/models/task_model.dart';
+import '../volunteer_navigation_menu.dart';
 
 class ServerService {
+
   static const String baseUrl = "http://80.78.243.244:3000";
 
   // Отправка OTP кода
@@ -103,6 +106,8 @@ class ServerService {
     );
 
     if (response.statusCode == 200) {
+      getUser(volunteer.phoneNumber);
+      Get.offAll(VolunteerNavigationMenu());
       TLoaders.successSnackBar(title: 'Успешно', message: 'Волонтер успешно добавлен');
     } else {
       print('Ошибка при добавлении волонтера: ${response.body}');
@@ -119,6 +124,8 @@ class ServerService {
     );
 
     if (response.statusCode == 200) {
+      getUser(client.phoneNumber);
+      Get.offAll(ClientNavigationMenu());
       TLoaders.successSnackBar(title: 'Успешно', message: 'Клиент успешно добавлен');
     } else {
       print('Ошибка при добавлении клиента: ${response.body}');
@@ -319,7 +326,10 @@ class ServerService {
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"id_task": idTask, "id_volunteers": idVolunteer}),
+        body: jsonEncode({
+          "id_task": idTask,
+          "id_volunteers": idVolunteer
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -371,8 +381,32 @@ class ServerService {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        print('Рейтинг успешно обновлён: ${responseData}');
+        print('Рейтинг успешно обновлён: $responseData');
         // Можешь показать уведомление пользователю или обновить локальные данные
+      } else {
+        print('Ошибка при обновлении рейтинга: ${response.body}');
+      }
+    } catch (e) {
+      print('Ошибка сети: $e');
+    }
+  }
+
+  Future<void> updateClientRating(int taskId, double userRating) async {
+    final url = Uri.parse("$baseUrl/bd/update-client-rating");
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'id_task': taskId,
+          'new_rating': userRating,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = json.decode(response.body);
+        print('Рейтинг успешно обновлён: $responseData');
       } else {
         print('Ошибка при обновлении рейтинга: ${response.body}');
       }
@@ -425,7 +459,44 @@ class ServerService {
   }
 
   Future<List<Message>> getMessagesForTask(int taskId) async {
-    final url = Uri.parse('$baseUrl/bd/chat-messages?taskId=$taskId');
+    final url = Uri.parse('$baseUrl/bd/get-chat-messages?taskId=$taskId');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map<Message>((item) => Message.fromJson(item)).toList();
+      } else {
+        throw Exception('Ошибка получения сообщений: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Ошибка при получении сообщений: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> sendSupportMessage({required int senderId, required String messageText}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/bd/send-support-message'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'senderId': senderId,
+        'messageText': messageText,
+      }),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Ошибка отправки сообщения');
+    }
+  }
+
+  Future<List<Message>> getSupportMessages(int userId) async {
+    final url = Uri.parse('$baseUrl/bd/get-support-messages?userId=$userId');
 
     try {
       final response = await http.get(url);
@@ -482,6 +553,117 @@ class ServerService {
       }
     } catch (e) {
       print('Ошибка при соединении с сервером: $e');
+      return false;
+    }
+  }
+
+  Future<List<Client>> getAllClients() async {
+    final Uri url = Uri.parse('$baseUrl/bd/get-all-clients');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Client.fromJson(json)).toList();
+      } else {
+        print("Ошибка при получении клиентов: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      print("Ошибка при подключении к серверу: $e");
+      return [];
+    }
+  }
+
+  Future<List<Volunteer>> getAllVolunteers() async {
+    final Uri url = Uri.parse('$baseUrl/bd/get-all-volunteers');
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Volunteer.fromJson(json)).toList();
+      } else {
+        print("Ошибка при получении волонтёров: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      print("Ошибка при подключении к серверу: $e");
+      return [];
+    }
+  }
+
+  Future<void> blockUser(int userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/bd/block-user'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'id_user': userId
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Не удалось заблокировать пользователя');
+      }
+    } catch (e) {
+      throw Exception('Ошибка при блокировке пользователя: $e');
+    }
+  }
+
+  // Метод для разблокировки пользователя
+  Future<void> unblockUser(int userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/bd/unblock-user'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'id_user': userId
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Не удалось разблокировать пользователя');
+      }
+    } catch (e) {
+      throw Exception('Ошибка при разблокировке пользователя: $e');
+    }
+  }
+
+  Future<List<int>> getSupportTickets() async {
+    final url = Uri.parse('$baseUrl/bd/get-support-tickets');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map<int>((item) => item['user_id'] as int).toList();
+      } else {
+        throw Exception('Ошибка получения тикетов: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Ошибка при получении тикетов: $e');
+      rethrow;
+    }
+  }
+
+  Future<bool> cancelVolunteerParticipation(int taskId, int volunteerId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/bd/cancel-task-volunteer'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'taskId': taskId,
+        'volunteerId': volunteerId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      print('Ошибка отмены участия волонтера: ${response.body}');
       return false;
     }
   }

@@ -28,7 +28,7 @@ class TaskDetailController extends GetxController {
   RxString lastMessage = ''.obs;
   final StreamController<String> _messageController = StreamController.broadcast();
   bool isModalShown = false;
-
+  var volunteers = <Volunteer>[].obs;
   Stream<String> get messageStream => _messageController.stream; // Поток сообщений
 
   void getUser() {
@@ -181,9 +181,15 @@ class TaskDetailController extends GetxController {
     try {
       TaskModel? task = await serverService.getTaskById(taskId);
       taskData.value = task;
+      loadVolunteers();
     } catch (e) {
       print("Ошибка при получении задачи: $e");
     }
+  }
+
+  void loadVolunteers() async {
+    final data = taskData.value?.volunteers;
+    volunteers.value = data ?? [];
   }
 
   void openPdfUrl(int dobroId) async {
@@ -261,5 +267,20 @@ class TaskDetailController extends GetxController {
     final realVolunteers = volunteers.where((v) => v.idVolunteer != 0).toList();
 
     return realVolunteers.length;
+  }
+
+  void cancelParticipation(int taskId, int volunteerId) async {
+    isLoading.value = true;
+
+    final success = await serverService.cancelVolunteerParticipation(taskId, volunteerId);
+
+    isLoading.value = false;
+
+    if (success) {
+      fetchTask(taskId);
+      TLoaders.successSnackBar(title: 'Успешно', message: 'Вы отказались от этого волонтера');
+    } else {
+      Get.snackbar('Ошибка', 'Не удалось отменить');
+    }
   }
 }

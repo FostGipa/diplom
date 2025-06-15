@@ -59,7 +59,8 @@ class TaskModel {
         'last_name': json['client_last_name'],
         'middle_name': json['client_middle_name'],
         'date_of_birth': json['client_date_of_birth'],
-        'phone_number': json['client_phone']
+        'phone_number': json['client_phone'],
+        'client_rating': json['client_rating']
       }),
       volunteers: (json['volunteers'] as List<dynamic>?)
           ?.map((v) => Volunteer.fromJson(v))

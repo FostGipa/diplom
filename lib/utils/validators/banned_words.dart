@@ -1314,10 +1314,10 @@ class BannedWords {
     'хуйло',
     'отъебись',
     'отьебись',
-    'спам',
-    'spam',
+    'дебил',
     'мудила',
-    'пидарасы'
+    'пидарасы',
+    'блин'
   ];
 
   bool containsBadWords(String? value) {

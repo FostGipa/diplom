@@ -178,11 +178,13 @@ class SignupScreenState extends State<SignupScreen> {
 
             InkWell(
               onTap: () async {
+                final DateTime currentDate = DateTime.now();
+
                 final DateTime? picked = await showDatePicker(
                   context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(Duration(days: 365)),
+                  initialDate: controller.selectedDate ?? DateTime(2000),
+                  firstDate: DateTime(1900),
+                  lastDate: currentDate,
                   locale: Locale('ru', 'RU'),
                 );
                 if (picked != null && picked != controller.selectedDate) {

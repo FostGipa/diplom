@@ -7,6 +7,9 @@ class Client {
   final String gender;
   final String dateOfBirth;
   final String phoneNumber;
+  final String? status;
+  final String? rating;
+  final int? ratingCount;
 
   Client({
     this.idClient,
@@ -17,7 +20,11 @@ class Client {
     required this.gender,
     required this.dateOfBirth,
     required this.phoneNumber,
+    this.status,
+    this.rating,
+    this.ratingCount,
   });
+
 
   Map<String, dynamic> toJson() {
     return {
@@ -28,6 +35,8 @@ class Client {
       'gender': gender,
       'date_of_birth': dateOfBirth,
       'phone_number': phoneNumber,
+      'client_rating': rating,
+      'rating_count': ratingCount,
     };
   }
 
@@ -41,6 +50,9 @@ class Client {
       gender: json['gender'] as String? ?? '',
       dateOfBirth: json['date_of_birth'] as String? ?? '',
       phoneNumber: json['phone_number'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+      rating: json['client_rating'] as String? ?? '',
+      ratingCount: json['rating_count'] as int?,
     );
   }
 }

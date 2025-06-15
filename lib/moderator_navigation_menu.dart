@@ -1,33 +1,36 @@
 import 'package:app/data/models/menu.dart';
-import 'package:app/features/client/home/screens/client_home.dart';
-import 'package:app/features/client/home/screens/client_profile.dart';
-import 'package:app/features/common/screens/qr_scanner.dart';
+import 'package:app/features/moderator/screens/moderator_home.dart';
+import 'package:app/features/moderator/screens/moderator_tasks.dart';
+import 'package:app/features/moderator/screens/moderator_tickets.dart';
+import 'package:app/features/moderator/screens/moderator_users.dart';
 import 'package:app/utils/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
 const Color bottomNavBgColor = Color(0xFF17203A);
 
-class ClientNavigationMenu extends StatefulWidget {
-  const ClientNavigationMenu({super.key});
+class ModeratorNavigationMenu extends StatefulWidget {
+  const ModeratorNavigationMenu({super.key});
 
   @override
-  State<ClientNavigationMenu> createState() => _ClientNavigationMenuState();
+  State<ModeratorNavigationMenu> createState() => _ModeratorNavigationMenuState();
 }
 
-class _ClientNavigationMenuState extends State<ClientNavigationMenu> {
+class _ModeratorNavigationMenuState extends State<ModeratorNavigationMenu> {
   int selectedNavIndex = 0;
 
   List<LottieNavItem> bottomNavItems = [
     LottieNavItem(asset: 'assets/lottie/home.json', label: 'Главная'),
-    LottieNavItem(asset: 'assets/lottie/qrcode.json', label: 'QR-код'),
-    LottieNavItem(asset: 'assets/lottie/user.json', label: 'Профиль'),
+    LottieNavItem(asset: 'assets/lottie/checklist.json', label: 'Заявки'),
+    LottieNavItem(asset: 'assets/lottie/user.json', label: 'Пользователи'),
+    LottieNavItem(asset: 'assets/lottie/chat.json', label: 'Чат'),
   ];
 
   final List<Widget> pages = [
-    ClientHomeScreen(),
-    QRScanScreen(),
-    ClientProfileScreen()
+    ModeratorHomeScreen(),
+    ModeratorTasksScreen(),
+    ModeratorUsersScreen(),
+    ModeratorTicketsScreen()
   ];
 
   @override

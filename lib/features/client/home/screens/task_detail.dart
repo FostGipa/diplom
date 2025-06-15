@@ -210,11 +210,11 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
                               ),
                               child: Column(
                                 children: [
-                                  _buildInfoRow(Iconsax.calendar_add, _formatDate(task.taskStartDate), task.taskStartTime),
+                                  _buildInfoRow(Iconsax.calendar_add, _formatDate(task.taskStartDate), task.taskStartTime, ""),
                                   SizedBox(height: TSizes.spaceBtwInputFields),
-                                  _buildInfoRow(Iconsax.location, task.taskAddress, ""),
+                                  _buildInfoRow(Iconsax.location, task.taskAddress, "", ""),
                                   SizedBox(height: 12),
-                                  _buildInfoRow(Iconsax.user, "${task.client?.lastName} ${task.client?.name}", _controller.formatDate(task.client!.dateOfBirth)),
+                                  _buildInfoRow(Iconsax.user, "${task.client?.lastName} ${task.client?.name}", _controller.formatDate(task.client!.dateOfBirth), "Рейтинг: ${task.client!.rating!}"),
                                 ],
                               )
                             ),
@@ -242,14 +242,14 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
                               ),
                             ),
                             SizedBox(height: TSizes.spaceBtwItems),
-                            _buildVolunteerList(task.volunteers),
+                            Obx(() => _buildVolunteerList(_controller.volunteers.toList())),
                             SizedBox(height: TSizes.spaceBtwSections),
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
                                   onPressed: () async {
                                     await Future.delayed(Duration(seconds: 1), () {
-                                      if (_controller.taskData.value?.taskStatus == 'В процессе') {
+                                      if (_controller.taskData.value?.taskStatus == 'В процессе' || _controller.taskData.value?.taskStatus == 'Готова') {
                                         endTask();
                                       }
                                     });
@@ -418,77 +418,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
       physics: NeverScrollableScrollPhysics(),
       padding: EdgeInsets.zero,
       itemBuilder: (context, index) {
-        return _volunteerCard(volunteers![index]);
+        return VolunteerCard(
+          volunteer: volunteers![index],
+          controller: _controller,
+          taskId: _controller.taskData.value!.id!,
+        );
       },
       separatorBuilder: (context, index) {
         return SizedBox(height: TSizes.spaceBtwInputFields);
       },
-    );
-  }
-
-  Widget _volunteerCard(Volunteer volunteer) {
-    return Container(
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 26,
-            backgroundColor: Colors.grey.shade300,
-            child: Icon(Iconsax.user),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  volunteer.name,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "Волонтер",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(Iconsax.archive_book, color: Colors.grey),
-                onPressed: () {
-                  _controller.openPdfUrl(volunteer.dobroId!);
-                },
-              ),
-              IconButton(
-                icon: Icon(Iconsax.call, color: Colors.grey),
-                onPressed: () {
-                  _controller.makePhoneCall(volunteer.phoneNumber);
-                },
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
@@ -512,7 +450,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String line1, String? line2) {
+  Widget _buildInfoRow(IconData icon, String line1, String? line2, String? line3) {
     return Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -530,6 +468,12 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
                 if (line2 != null && line2.isNotEmpty)
                   Text(
                     line2,
+                    style: TextStyle(fontSize: 18),
+                    softWrap: true,
+                  ),
+                if (line3 != null && line3.isNotEmpty)
+                  Text(
+                    line3,
                     style: TextStyle(fontSize: 18),
                     softWrap: true,
                   ),
@@ -620,3 +564,161 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> with SingleTickerPr
     ));
   }
 }
+
+class VolunteerCard extends StatefulWidget {
+  final Volunteer volunteer;
+  final TaskDetailController controller;
+  final int taskId; // Добавь taskId, чтобы знать к какой заявке относится волонтёр
+
+  VolunteerCard({
+    required this.volunteer,
+    required this.controller,
+    required this.taskId,
+  });
+
+  @override
+  _VolunteerCardState createState() => _VolunteerCardState();
+}
+
+class _VolunteerCardState extends State<VolunteerCard> with SingleTickerProviderStateMixin {
+  bool _expanded = false;
+
+  void _showConfirmDialog() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Запросить другого волонтера?'),
+        content: Text('Вы уверены, что хотите отказаться от этого волонтера?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('Да'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      widget.controller.cancelParticipation(widget.taskId, widget.volunteer.idVolunteer!);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dismissible(
+      key: ValueKey(widget.volunteer.idVolunteer),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) async {
+        _showConfirmDialog();
+        return false; // чтобы карточка не удалялась визуально
+      },
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.only(right: 20),
+        decoration: BoxDecoration(
+          color: Colors.redAccent,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Icon(Icons.person_off, color: Colors.white),
+      ),
+      child: GestureDetector(
+        onTap: () => setState(() => _expanded = !_expanded),
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 300),
+          padding: EdgeInsets.all(12),
+          margin: EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade300),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 5,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: Colors.grey.shade300,
+                    child: Icon(Iconsax.user),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.volunteer.name,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          "Волонтер",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(Iconsax.archive_book, color: Colors.grey),
+                        onPressed: () {
+                          widget.controller.openPdfUrl(widget.volunteer.dobroId!);
+                        },
+                      ),
+                      IconButton(
+                        icon: Icon(Iconsax.call, color: Colors.grey),
+                        onPressed: () {
+                          widget.controller.makePhoneCall(widget.volunteer.phoneNumber);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              AnimatedSize(
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: _expanded
+                    ? Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Divider(),
+                      SizedBox(height: 8),
+                      Text("Рейтинг: ${widget.volunteer.rating}"),
+                      SizedBox(height: 4),
+                      Text("Добрые дела: ${widget.volunteer.completedTasks}"),
+                      SizedBox(height: 4),
+                      Text("Часы помощи: ${widget.volunteer.helpHours}"),
+                    ],
+                  ),
+                )
+                    : SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

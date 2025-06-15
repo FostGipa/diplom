@@ -1,7 +1,6 @@
 import 'package:app/features/authentication/screens/login.dart';
 import 'package:app/features/client/home/controllers/client_profile_controller.dart';
 import 'package:app/features/common/screens/about_app.dart';
-import 'package:app/features/common/screens/notifications.dart';
 import 'package:app/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -9,6 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../common/widgets/custom_user_avatar.dart';
 import '../../../../common/widgets/profile_menu_widget.dart';
+import '../../../common/screens/chat.dart';
 
 class ClientProfileScreen extends StatefulWidget {
   const ClientProfileScreen({super.key});
@@ -54,12 +54,14 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                     fontWeight: FontWeight.w600,
                     fontSize: 25,
                   )),
+                  SizedBox(height: 10),
+                  Text('Рейтинг: ${_controller.clientData.value!.rating!}', style: TextStyle(fontWeight: FontWeight.w400, fontSize: 20)),
                   SizedBox(height: TSizes.spaceBtwSections),
                   ProfileMenuWidget(
-                      title: 'Уведомления',
-                      icon: Iconsax.notification,
+                      title: 'Поддержка',
+                      icon: Icons.support_agent,
                       onPress: () {
-                        Get.to(NotificationsScreen());
+                        Get.to(() => ChatScreen(userId: _controller.userData.value!.idUser, isSupportChat: true));
                       }),
                   ProfileMenuWidget(
                       title: 'О приложении',
@@ -77,6 +79,7 @@ class _ClientProfileScreenState extends State<ClientProfileScreen> {
                       },
                       textColor: Colors.red,
                       endIcon: false),
+                  SizedBox(height: 80),
                 ],
               ),
             ),

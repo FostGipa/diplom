@@ -10,8 +10,14 @@ import '../../../utils/constants/sizes.dart';
 class ChatScreen extends StatefulWidget {
   final int? taskId;
   final int? userId;
+  final bool isSupportChat;
 
-  const ChatScreen({super.key, this.taskId, this.userId});
+  const ChatScreen({
+    super.key,
+    this.taskId,
+    this.userId,
+    this.isSupportChat = false,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -25,10 +31,15 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    if (widget.taskId != null) {
+    _controller.getUser();
+    if (widget.isSupportChat) {
+      _controller.loadSupportMessages(widget.userId!);
+      _controller.initSupportWebSocket(_controller.userData.value!.idUser!);
+    } else if (widget.taskId != null) {
       _controller.loadMessages(widget.taskId!);
       _controller.initWebSocket(widget.userId!, widget.taskId!);
     }
+
   }
 
   @override
@@ -39,8 +50,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _sendMessage() {
     if (_messageController.text.isNotEmpty) {
-      _controller.sendMessage(
-          widget.taskId!, widget.userId!, _messageController.text);
+      if (widget.isSupportChat) {
+        _controller.sendSupportMessage(_controller.userData.value!.idUser!, _messageController.text);
+      } else {
+        _controller.sendMessage(
+            widget.taskId!, widget.userId!, _messageController.text);
+      }
       _messageController.clear();
     }
   }
@@ -55,7 +70,7 @@ class _ChatScreenState extends State<ChatScreen> {
           icon: Icon(Iconsax.arrow_left_2),
         ),
         title: Text(
-          'Чат',
+          widget.isSupportChat ? 'Поддержка' : 'Чат',
           style: TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
         ),
       ),
@@ -86,7 +101,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
-                    final isMe = message.senderId == widget.userId;
+                    final isMe = message.senderId == _controller.userData.value!.idUser;
 
                     return ChatBubble(
                       message: message.messageText,
@@ -94,6 +109,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       timestamp: message.createdAt,
                       senderName: message.senderName,
                       senderRole: message.senderRole,
+                      isSupportChat: widget.isSupportChat,
                     );
                   },
                 );
@@ -138,7 +154,6 @@ class _ChatScreenState extends State<ChatScreen> {
       }),
     );
   }
-
 }
 
 class ChatBubble extends StatelessWidget {
@@ -147,6 +162,7 @@ class ChatBubble extends StatelessWidget {
   final String timestamp;
   final String senderName;
   final String senderRole;
+  final bool isSupportChat;
 
   const ChatBubble({
     super.key,
@@ -155,6 +171,7 @@ class ChatBubble extends StatelessWidget {
     required this.timestamp,
     required this.senderName,
     required this.senderRole,
+    required this.isSupportChat,
   });
 
   @override
@@ -188,7 +205,7 @@ class ChatBubble extends StatelessWidget {
                     ),
                   ),
                   TextSpan(
-                    text: senderName,
+                    text: isSupportChat ? '' : senderName,
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
@@ -217,56 +234,3 @@ class ChatBubble extends StatelessWidget {
     );
   }
 }
-
-// class ChatBubble extends StatelessWidget {
-//   final String message;
-//   final bool isCurrentUser;
-//   final String timestamp; // Время отправки сообщения
-//
-//   const ChatBubble({
-//     super.key,
-//     required this.message,
-//     required this.isCurrentUser,
-//     required this.timestamp, // Время сообщения
-//   });
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     // Форматируем время
-//     final formattedTime = DateFormat('HH:mm').format(DateTime.parse(timestamp));
-//
-//     return Align(
-//       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
-//       child: Container(
-//         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.5), // Ограничение по ширине
-//         decoration: BoxDecoration(
-//           color: isCurrentUser ? TColors.green : Colors.grey.shade500,
-//           borderRadius: BorderRadius.circular(12),
-//         ),
-//         padding: const EdgeInsets.all(16),
-//         margin: const EdgeInsets.symmetric(vertical: 2.5, horizontal: 25),
-//         child: Column(
-//           crossAxisAlignment:
-//           isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-//           children: [
-//             // Сообщение
-//             Text(
-//               message,
-//               style: TextStyle(color: Colors.white),
-//             ),
-//             const SizedBox(height: 5),
-//             // Время
-//             Text(
-//               formattedTime,
-//               style: TextStyle(
-//                 color: Colors.white,
-//                 fontSize: 12,
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-

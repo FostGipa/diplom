@@ -1,6 +1,5 @@
 import 'package:app/features/authentication/screens/login.dart';
 import 'package:app/features/common/screens/about_app.dart';
-import 'package:app/features/common/screens/notifications.dart';
 import 'package:app/features/volunteer/controllers/profile_controller.dart';
 import 'package:app/utils/constants/sizes.dart';
 import 'package:flutter/material.dart';
@@ -139,12 +138,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ));
                       }),
                   ProfileMenuWidget(
-                      title: 'Уведомления',
-                      icon: Iconsax.notification,
-                      onPress: () {
-                        Get.to(NotificationsScreen());
-                      }),
-                  ProfileMenuWidget(
                       title: 'О приложении',
                       icon: Iconsax.warning_2,
                       onPress: () {
@@ -160,6 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       },
                       textColor: Colors.red,
                       endIcon: false),
+                  SizedBox(height: 80),
                 ],
               ),
             ),

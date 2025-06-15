@@ -3,7 +3,6 @@ import 'package:app/data/models/client_model.dart';
 import 'package:app/features/client/home/screens/task_create.dart';
 import 'package:app/features/client/home/screens/task_detail.dart';
 import 'package:app/features/common/screens/archive_task.dart';
-import 'package:app/features/common/screens/notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
@@ -12,7 +11,6 @@ import '../../../../common/widgets/custom_shaper/containers/primary_header_conta
 import '../../../../utils/constants/colors.dart';
 import '../../../../utils/constants/sizes.dart';
 import '../../../../common/widgets/appbar/appbar.dart';
-import '../../../../common/widgets/appbar/custom_notification_icon_widget.dart';
 import '../../../../utils/device/device_utility.dart';
 import '../controllers/client_home_controller.dart';
 
@@ -58,10 +56,14 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Get.to(() => const ClientTaskCreateScreen()),
+                    onPressed: () async => {
+                      await Get.to(ClientTaskCreateScreen()),
+                      _controller.loadData()
+                    },
                     child: const Text('Создать новую заявку'),
                   ),
                 ),
+                SizedBox(height: 80),
               ],
             ),
           ),
@@ -92,11 +94,6 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
           }),
         ],
       ),
-      actions: [
-        TNotificationsIcon(onPressed: () {
-          Get.to(NotificationsScreen());
-        }, text: "1"),
-      ],
     );
   }
 
@@ -115,7 +112,7 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
         SizedBox(height: TSizes.spaceBtwItems),
         Obx(() {
           final activeTasks = _controller.activeTasks
-              .where((task) => task.taskStatus == "В процессе" || task.taskStatus == "Создана")
+              .where((task) => task.taskStatus == "В процессе" || task.taskStatus == "Создана" || task.taskStatus == "Готова")
               .toList();
 
           if (activeTasks.isEmpty) {
@@ -138,7 +135,7 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
                       width: TDeviceUtils.getScreenWight(context),
                       child: TPrimaryHeaderContainer(
                         backgroundColor: TColors.green,
-                        circularColor: Colors.white.withOpacity(0.1),
+                        circularColor: Colors.white.withValues(alpha: 0.1),
                         child: Padding(
                           padding: EdgeInsets.all(TSizes.lg),
                           child: Column(
@@ -222,19 +219,23 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              task.taskName,
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              task.taskEndDate!,
-                              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-                            ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                task.taskName,
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                task.taskEndDate!,
+                                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                              ),
+                            ],
+                          ),
                         ),
                         Text(
                           task.taskStatus,
@@ -247,6 +248,7 @@ class ClientHomeScreenState extends State<ClientHomeScreen> with WidgetsBindingO
                         ),
                       ],
                     ),
+
                     SizedBox(height: TSizes.spaceBtwItems),
                   ],
                 ),

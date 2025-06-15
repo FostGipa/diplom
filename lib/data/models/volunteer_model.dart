@@ -14,6 +14,7 @@ class Volunteer {
   final int? completedTasks;
   final String? rating;
   final int? ratingCount;
+  final String? status;
 
   Volunteer({
     this.idVolunteer,
@@ -30,7 +31,8 @@ class Volunteer {
     this.helpHours,
     this.completedTasks,
     this.rating,
-    this.ratingCount
+    this.ratingCount,
+    this.status,
   });
 
   Map<String, dynamic> toJson() {
@@ -68,6 +70,7 @@ class Volunteer {
       completedTasks: json['completed_tasks'] as int?,
       rating: json['rating'] as String? ?? '',
       ratingCount: json['rating_count'] as int?,
+      status: json['status'] ?? 'Активный',
     );
   }
 

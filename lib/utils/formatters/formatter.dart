@@ -9,7 +9,6 @@ class TFormatters {
 
   // Маска на DobroID
   final MaskTextInputFormatter dobroIdFormatter = MaskTextInputFormatter(
-    mask: '######',
     filter: {"#": RegExp(r'[0-9A-Z]')},
   );
 

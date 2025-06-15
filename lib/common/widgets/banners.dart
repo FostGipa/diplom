@@ -52,56 +52,35 @@ class _BannerWidgetState extends State<BannerWidget> {
   Widget build(BuildContext context) {
     return Center(
       child: SizedBox(
-        height: 190,
-        width: double.infinity,
+        height: 190, width: double.infinity,
         child: Column(
           children: [
             Container(
               height: 170,
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade300),
+                color: Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade300),
                 boxShadow: [
                   const BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 5,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
+                    color: Colors.black12, blurRadius: 5, offset: Offset(0, 2),
+                  ),],),
               child: PageView.builder(
-                controller: pageController,
-                itemCount: banners.length,
+                controller: pageController, itemCount: banners.length,
                 onPageChanged: (index) {
                   setState(() {
                     currentIndex = index;
-                  });
-                },
+                  });},
                 itemBuilder: (context, index) {
                   return ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: FittedBox(
-                      fit: BoxFit.fill,
+                    child: FittedBox(fit: BoxFit.fill,
                       child: Image.asset(banners[index]),
-                    ),
-                  );
-                },
-              ),
-            ),
+                    ),);},),),
             const SizedBox(height: 8),
             SmoothPageIndicator(
-              controller: pageController,
-              count: banners.length,
+              controller: pageController, count: banners.length,
               effect: WormEffect(
-                dotHeight: 8,
-                dotWidth: 8,
-                activeDotColor: Colors.green, // Замените на TColors.green если используете тему
-                dotColor: Colors.grey.shade300,
-              ),
-            ),
-          ],
-        ),
+                dotHeight: 8, dotWidth: 8, activeDotColor: Colors.green, dotColor: Colors.grey.shade300,
+              ),),],),
       ),
     );
   }

@@ -6,6 +6,7 @@ class Message {
   String senderRole;
   String messageText;
   String createdAt;
+  int? receiverId;
 
   Message({
     this.id,
@@ -15,6 +16,7 @@ class Message {
     required this.senderRole,
     required this.messageText,
     required this.createdAt,
+    this.receiverId
   });
 
   // Фабричный конструктор для создания объекта из JSON
@@ -27,6 +29,7 @@ class Message {
       senderRole: json['sender_role'] as String? ?? '',
       messageText: json['message_text'],
       createdAt: json['created_at'],
+      receiverId: json['receiver_id '] as int? ?? 0
     );
   }
 
@@ -40,6 +43,7 @@ class Message {
       'sender_role': senderRole,
       'message_text': messageText,
       'created_at': createdAt,
+      'receiver_id ': receiverId
     };
   }
 }

@@ -13,7 +13,7 @@ import '../../../../data/models/volunteer_model.dart';
 import '../../../../server/service.dart';
 
 class VolunteerTaskDetailController extends GetxController {
-  final ServerService serverService = ServerService();
+  ServerService serverService = ServerService();
   Rx<TaskModel?> taskData = Rx<TaskModel?>(null);
   var panelHeight = 0.3.obs;
   Rx<User?> userData = Rx<User?>(null);
@@ -57,7 +57,6 @@ class VolunteerTaskDetailController extends GetxController {
     try {
       TaskModel? task = await serverService.getTaskById(taskId);
       taskData.value = task;
-
       loadVolunteers();
     } catch (e) {
       print("Ошибка при получении задачи: $e");
@@ -123,7 +122,7 @@ class VolunteerTaskDetailController extends GetxController {
     }
   }
 
-  void acceptTask(int idTask, int idVolunteer) async {
+  Future<void> acceptTask(int idTask, int idVolunteer) async {
     bool success = await serverService.acceptRequest(idTask, idVolunteer);
     if (success) {
       fetchTask(idTask);
@@ -146,5 +145,20 @@ class VolunteerTaskDetailController extends GetxController {
     final realVolunteers = volunteers.where((v) => v.idVolunteer != 0).toList();
 
     return realVolunteers.length;
+  }
+
+  void cancelParticipation() async {
+    isLoading.value = true;
+
+    final success = await serverService.cancelVolunteerParticipation(taskData.value!.id!, volunteerData.value!.idVolunteer!);
+
+    isLoading.value = false;
+
+    if (success) {
+      TLoaders.successSnackBar(title: 'Успешно', message: 'Вы отказались от выполнения задачи');
+      Get.back();
+    } else {
+      Get.snackbar('Ошибка', 'Не удалось отменить участие');
+    }
   }
 }

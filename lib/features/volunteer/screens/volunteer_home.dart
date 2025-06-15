@@ -6,13 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import '../../../../common/widgets/appbar/appbar.dart';
-import '../../../../common/widgets/appbar/custom_notification_icon_widget.dart';
 import '../../../../common/widgets/custom_shaper/containers/primary_header_container.dart';
 import '../../../../utils/constants/colors.dart';
 import '../../../../utils/constants/sizes.dart';
 import '../../../../utils/device/device_utility.dart';
 import '../../common/screens/archive_task.dart';
-import '../../common/screens/notifications.dart';
 
 class VolunteerHomeScreen extends StatefulWidget {
   const VolunteerHomeScreen({super.key});
@@ -53,6 +51,7 @@ class VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
                 _activeTasks(context),
                 SizedBox(height: TSizes.spaceBtwSections),
                 _archiveTasks(context),
+                SizedBox(height: 80),
               ],
             ),
           ),
@@ -83,11 +82,6 @@ class VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
           }),
         ],
       ),
-      actions: [
-        TNotificationsIcon(onPressed: () {
-          Get.to(NotificationsScreen());
-        }, text: "1"),
-      ],
     );
   }
 
@@ -106,7 +100,7 @@ class VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
         SizedBox(height: TSizes.spaceBtwItems),
         Obx(() {
           final activeTasks = _controller.activeTasks
-              .where((task) => task.taskStatus == "В процессе" || task.taskStatus == "Создана")
+              .where((task) => task.taskStatus == "В процессе" || task.taskStatus == "Создана" || task.taskStatus == "Готова")
               .toList();
 
           if (activeTasks.isEmpty) {
@@ -213,19 +207,23 @@ class VolunteerHomeScreenState extends State<VolunteerHomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              task.taskName,
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              task.taskEndDate!,
-                              style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-                            ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                task.taskName,
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                softWrap: true,
+                                overflow: TextOverflow.visible,
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                task.taskEndDate!,
+                                style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                              ),
+                            ],
+                          ),
                         ),
                         Text(
                           task.taskStatus,
