@@ -16,7 +16,7 @@ import '../volunteer_navigation_menu.dart';
 
 class ServerService {
 
-  static const String baseUrl = "http://80.78.243.244:3000";
+  static const String baseUrl = "http://89.111.173.37:3000";
 
   // Отправка OTP кода
   Future<String?> sendOtp(String phoneNumber) async {

@@ -47,7 +47,7 @@ class TaskDetailController extends GetxController {
 
   void initWebSocket() {
     if (userData.value?.idUser != null) {
-      channel = IOWebSocketChannel.connect('ws://80.78.243.244:3000?userId=${userData.value!.idUser}');
+      channel = IOWebSocketChannel.connect('ws://89.111.173.37:3000?userId=${userData.value!.idUser}');
       _listenWebSocket();
     }
   }
